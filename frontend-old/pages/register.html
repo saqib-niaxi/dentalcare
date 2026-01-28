@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - Dr. Ahmed Dental Care</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="container">
+      <div class="logo">
+        <h2>Dr. Ahmed Dental Care</h2>
+      </div>
+      <ul class="nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="services.html">Services</a></li>
+        <li><a href="contact.html">Contact</a></li>
+        <li><a href="book-appointment.html" class="btn-primary">Book Appointment</a></li>
+        <li><a href="login.html">Login</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Register Section -->
+  <section class="page-content" style="min-height: 70vh; display: flex; align-items: center;">
+    <div class="container">
+      <div class="auth-container">
+        <h2>Create Your Account</h2>
+
+        <!-- Step 1: Register Form -->
+        <form id="registerForm" style="display: block;">
+          <div class="form-group">
+            <label for="name">Full Name</label>
+            <input type="text" id="name" name="name" required>
+          </div>
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" required>
+          </div>
+          <div class="form-group">
+            <label for="phone">Phone Number</label>
+            <input type="tel" id="phone" name="phone" required>
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required minlength="6">
+          </div>
+          <button type="submit" class="btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+            Register
+          </button>
+        </form>
+
+        <!-- Step 2: OTP Verification (hidden initially) -->
+        <form id="verifyOtpForm" style="display: none;">
+          <div class="form-group">
+            <label for="otp">Verification Code</label>
+            <input type="text" id="otp" name="otp" maxlength="6" required placeholder="Enter 6-digit code from email">
+            <small>Didn't receive? <a href="#" id="resendOtp">Resend code</a></small>
+          </div>
+          <button type="submit" class="btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+            Verify & Continue
+          </button>
+        </form>
+
+        <div class="auth-link">
+          Already have an account? <a href="login.html">Login here</a>
+        </div>
+        <div id="registerMessage" style="margin-top: 1rem;"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p>&copy; 2024 Dr. Ahmed Dental Care. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script>
+    let currentRegisterData = {};
+
+    // Step 1: Handle register form submission
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      currentRegisterData = {
+        name: document.getElementById('name').value,
+        email: document.getElementById('email').value,
+        phone: document.getElementById('phone').value,
+        password: document.getElementById('password').value
+      };
+
+      try {
+        const response = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(currentRegisterData)
+        });
+
+        const data = await response.json();
+        const messageDiv = document.getElementById('registerMessage');
+
+        if (response.ok) {
+          messageDiv.innerHTML = '<div class="alert alert-success">Registration successful! Check your email for OTP.</div>';
+          document.getElementById('registerForm').style.display = 'none';
+          document.getElementById('verifyOtpForm').style.display = 'block';
+          document.getElementById('otp').focus();
+        } else {
+          const errorMessage = data.message || data.errors?.map(e => e.msg).join(', ') || 'Registration failed';
+          messageDiv.innerHTML = `<div class="alert alert-error">${errorMessage}</div>`;
+        }
+
+        setTimeout(() => {
+          messageDiv.innerHTML = '';
+        }, 5000);
+      } catch (error) {
+        document.getElementById('registerMessage').innerHTML = '<div class="alert alert-error">Registration failed. Please try again.</div>';
+      }
+    });
+
+    // Step 2: Verify OTP
+    document.getElementById('verifyOtpForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = {
+        email: currentRegisterData.email,
+        otp: document.getElementById('otp').value
+      };
+
+      try {
+        const response = await fetch('/api/auth/verify-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        });
+
+        const data = await response.json();
+        const messageDiv = document.getElementById('registerMessage');
+
+        if (response.ok) {
+          // Store token and user info
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('user', JSON.stringify(data.user));
+
+          messageDiv.innerHTML = '<div class="alert alert-success">Email verified! Redirecting...</div>';
+
+          // Redirect based on role
+          setTimeout(() => {
+            if (data.user.role === 'admin') {
+              window.location.href = 'admin-panel.html';
+            } else {
+              window.location.href = 'my-appointments.html';
+            }
+          }, 1500);
+        } else {
+          messageDiv.innerHTML = `<div class="alert alert-error">${data.message || 'Invalid OTP'}</div>`;
+        }
+
+        setTimeout(() => {
+          messageDiv.innerHTML = '';
+        }, 5000);
+      } catch (error) {
+        document.getElementById('registerMessage').innerHTML = '<div class="alert alert-error">Verification failed. Try again.</div>';
+      }
+    });
+
+    // Resend OTP
+    document.getElementById('resendOtp').addEventListener('click', async (e) => {
+      e.preventDefault();
+      if (!currentRegisterData.email) return;
+
+      const messageDiv = document.getElementById('registerMessage');
+      messageDiv.innerHTML = '<div class="alert alert-info">Resending verification code...</div>';
+
+      try {
+        const response = await fetch('/api/auth/resend-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: currentRegisterData.email })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          messageDiv.innerHTML = '<div class="alert alert-success">New code sent! Check your email.</div>';
+        } else {
+          messageDiv.innerHTML = `<div class="alert alert-error">${data.message || 'Failed to resend'}</div>`;
+        }
+
+        setTimeout(() => { messageDiv.innerHTML = ''; }, 5000);
+      } catch (error) {
+        messageDiv.innerHTML = '<div class="alert alert-error">Failed to resend. Try again.</div>';
+      }
+    });
+  </script>
+</body>
+</html>

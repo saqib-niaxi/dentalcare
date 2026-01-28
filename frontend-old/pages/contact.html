@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Us - Dr. Ahmed Dental Care</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="container">
+      <div class="logo">
+        <h2>Dr. Ahmed Dental Care</h2>
+      </div>
+      <ul class="nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="services.html">Services</a></li>
+        <li><a href="contact.html" class="active">Contact</a></li>
+        <li><a href="book-appointment.html" class="btn-primary">Book Appointment</a></li>
+        <li><a href="login.html">Login</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Page Header -->
+  <section class="page-header">
+    <div class="container">
+      <h1>Contact Us</h1>
+      <p>Get in touch for appointments and inquiries</p>
+    </div>
+  </section>
+
+  <!-- Contact Content -->
+  <section class="page-content">
+    <div class="container">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; margin-bottom: 4rem;">
+        <!-- Contact Information -->
+        <div>
+          <h2 style="color: #0077b6; margin-bottom: 2rem;">Get in Touch</h2>
+          <div style="margin-bottom: 2rem;">
+            <h3 style="color: #0077b6; margin-bottom: 0.5rem;">📍 Address</h3>
+            <p style="font-size: 1.1rem;">123 Main Street, Gulshan-e-Iqbal<br>Karachi, Pakistan 75300</p>
+          </div>
+          <div style="margin-bottom: 2rem;">
+            <h3 style="color: #0077b6; margin-bottom: 0.5rem;">📞 Phone Numbers</h3>
+            <p style="font-size: 1.1rem;">Main: +92 301 2345678<br>
+               Emergency: +92 300 1234567</p>
+          </div>
+          <div style="margin-bottom: 2rem;">
+            <h3 style="color: #0077b6; margin-bottom: 0.5rem;">✉️ Email</h3>
+            <p style="font-size: 1.1rem;">info@ahmeddental.com<br>
+               appointments@ahmeddental.com</p>
+          </div>
+          <div style="margin-bottom: 2rem;">
+            <h3 style="color: #0077b6; margin-bottom: 0.5rem;">🕐 Clinic Hours</h3>
+            <div style="background: #f8f9fa; padding: 1rem; border-radius: 5px;">
+              <div style="display: flex; justify-content: space-between; padding: 0.5rem 0;">
+                <span><strong>Monday - Friday:</strong></span>
+                <span>9:00 AM - 6:00 PM</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 0.5rem 0;">
+                <span><strong>Saturday:</strong></span>
+                <span>9:00 AM - 2:00 PM</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 0.5rem 0;">
+                <span><strong>Sunday:</strong></span>
+                <span>Closed</span>
+              </div>
+            </div>
+          </div>
+          <div>
+            <h3 style="color: #0077b6; margin-bottom: 0.5rem;">🚨 Emergency</h3>
+            <p style="background: #ff6b6b; color: white; padding: 1rem; border-radius: 5px;">
+              For dental emergencies, call our emergency line at<br>
+              <strong>+92 300 1234567</strong> (24/7)
+            </p>
+          </div>
+        </div>
+
+        <!-- Contact Form -->
+        <div>
+          <h2 style="color: #0077b6; margin-bottom: 2rem;">Send Us a Message</h2>
+          <form id="contactForm" style="background: #f8f9fa; padding: 2rem; border-radius: 10px;">
+            <div style="margin-bottom: 1rem;">
+              <label for="name" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Your Name *</label>
+              <input type="text" id="name" name="name" required style="width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 5px;">
+            </div>
+            <div style="margin-bottom: 1rem;">
+              <label for="email" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Email Address *</label>
+              <input type="email" id="email" name="email" required style="width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 5px;">
+            </div>
+            <div style="margin-bottom: 1rem;">
+              <label for="phone" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Phone Number</label>
+              <input type="tel" id="phone" name="phone" style="width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 5px;">
+            </div>
+            <div style="margin-bottom: 1rem;">
+              <label for="subject" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Subject *</label>
+              <select id="subject" name="subject" required style="width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 5px;">
+                <option value="">Select subject</option>
+                <option value="appointment">Appointment Inquiry</option>
+                <option value="treatment">Treatment Question</option>
+                <option value="emergency">Emergency</option>
+                <option value="feedback">Feedback</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div style="margin-bottom: 1.5rem;">
+              <label for="message" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Message *</label>
+              <textarea id="message" name="message" rows="5" required style="width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 5px; resize: vertical;"></textarea>
+            </div>
+            <button type="submit" class="btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">Send Message</button>
+          </form>
+          <div id="contactMessage" style="margin-top: 1rem;"></div>
+        </div>
+      </div>
+
+      <!-- Google Map Placeholder -->
+      <div>
+        <h2 style="text-align: center; color: #0077b6; margin-bottom: 2rem;">Find Us</h2>
+        <div style="background: #f0f0f0; height: 400px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+          <div style="font-size: 3rem; margin-bottom: 1rem;">🗺️</div>
+          <h3 style="color: #666; margin-bottom: 1rem;">Google Map Location</h3>
+          <p style="color: #999; margin-bottom: 1rem;">Map would be embedded here showing our clinic location</p>
+          <p style="color: #999;">123 Main Street, Gulshan-e-Iqbal, Karachi</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p>&copy; 2024 Dr. Ahmed Dental Care. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script>
+    // Handle contact form submission
+    document.getElementById('contactForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(e.target);
+      const data = Object.fromEntries(formData);
+
+      try {
+        // Simulate sending message (in real app, this would be an API call)
+        const messageDiv = document.getElementById('contactMessage');
+        messageDiv.innerHTML = '<div class="alert alert-success">Thank you for your message! We will get back to you soon.</div>';
+
+        // Reset form
+        e.target.reset();
+
+        setTimeout(() => {
+          messageDiv.innerHTML = '';
+        }, 5000);
+      } catch (error) {
+        const messageDiv = document.getElementById('contactMessage');
+        messageDiv.innerHTML = '<div class="alert alert-error">Failed to send message. Please try again.</div>';
+      }
+    });
+  </script>
+</body>
+</html>
