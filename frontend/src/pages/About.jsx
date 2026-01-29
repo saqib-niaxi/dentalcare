@@ -44,7 +44,7 @@ export default function About() {
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-luxury-gold/20 to-primary/20 rounded-2xl transform -rotate-3" />
                 <img
-                  src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=500&auto=format&fit=crop&q=60"
+                  src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=600&auto=format&fit=crop&q=60"
                   alt="Dr. Ahmed"
                   className="relative rounded-2xl shadow-luxury w-full"
                 />
