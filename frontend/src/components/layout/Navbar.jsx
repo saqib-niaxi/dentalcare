@@ -24,13 +24,16 @@ export default function Navbar() {
     { path: '/contact', label: 'Contact' }
   ]
 
+  // Check if on auth pages (login/register/forgot-password)
+  const isAuthPage = ['/login', '/register', '/forgot-password'].includes(location.pathname)
+
   // Handle scroll effects
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY
 
-      // Add glass effect when scrolled
-      setIsScrolled(currentScrollY > 50)
+      // Add glass effect when scrolled OR on auth pages
+      setIsScrolled(currentScrollY > 50 || isAuthPage)
 
       // Hide on scroll down, show on scroll up
       if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
@@ -42,9 +45,14 @@ export default function Navbar() {
       lastScrollY.current = currentScrollY
     }
 
+    // Set initial state for auth pages
+    if (isAuthPage) {
+      setIsScrolled(true)
+    }
+
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+  }, [isAuthPage])
 
   // Animate nav links on mount
   useEffect(() => {

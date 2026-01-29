@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cmd //c \"taskkill /PID 4376 /F\")",
+      "Bash(npm run dev:*)",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_press_key",
+      "mcp__playwright__browser_click"
+    ]
+  }
+}

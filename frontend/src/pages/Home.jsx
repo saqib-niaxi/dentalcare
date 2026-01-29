@@ -35,9 +35,11 @@ export default function Home() {
                 <p className="text-luxury-gold tracking-widest text-sm mb-4 uppercase">Welcome to Dr. Ahmed Dental Care</p>
               </AnimatedSection>
 
-              <AnimatedHeading level={1} className="text-4xl md:text-5xl lg:text-6xl mb-6 text-white">
-                Your Smile is Our <GradientText>Priority</GradientText>
-              </AnimatedHeading>
+              <AnimatedSection animation="fadeUp" delay={0.3}>
+                <h1 className="text-4xl md:text-5xl lg:text-6xl mb-6 text-white font-serif font-bold">
+                  Your Smile is Our <GradientText>Priority</GradientText>
+                </h1>
+              </AnimatedSection>
 
               <AnimatedSection animation="fadeUp" delay={0.4}>
                 <p className="text-lg md:text-xl text-white/80 mb-8 leading-relaxed">

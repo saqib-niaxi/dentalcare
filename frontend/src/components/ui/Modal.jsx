@@ -9,6 +9,7 @@ export default function Modal({
   children,
   size = 'md',
   closeOnBackdrop = true,
+  dark = false, // New prop for dark theme (admin panel)
 }) {
   const { prefersReducedMotion, stopScroll, startScroll } = useAnimation()
   const backdropRef = useRef(null)
@@ -97,36 +98,42 @@ export default function Modal({
   return (
     <div
       ref={backdropRef}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
       onClick={handleBackdropClick}
     >
       {/* Glassmorphism backdrop */}
-      <div className="absolute inset-0 bg-luxury-black/60 backdrop-blur-sm" />
+      <div className={`absolute inset-0 backdrop-blur-sm ${dark ? 'bg-black/70' : 'bg-luxury-black/60'}`} />
 
       {/* Modal */}
       <div
         ref={modalRef}
         className={`
           relative w-full ${sizes[size]}
-          bg-white/95 backdrop-blur-xl
+          ${dark
+            ? 'bg-slate-800/95 border-white/10'
+            : 'bg-white/95 border-white/20'
+          }
+          backdrop-blur-xl
           rounded-2xl shadow-2xl
-          border border-white/20
+          border
         `}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-100">
-          <h3 className="text-xl font-serif font-semibold text-luxury-charcoal">
+        <div className={`flex items-center justify-between p-6 border-b ${dark ? 'border-white/10' : 'border-gray-100'}`}>
+          <h3 className={`text-xl font-serif font-semibold ${dark ? 'text-white' : 'text-luxury-charcoal'}`}>
             {title}
           </h3>
           <button
             onClick={handleClose}
-            className="
+            className={`
               w-10 h-10 rounded-full
               flex items-center justify-center
-              text-gray-400 hover:text-gray-600
-              hover:bg-gray-100
               transition-all duration-200
-            "
+              ${dark
+                ? 'text-slate-400 hover:text-white hover:bg-white/10'
+                : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+              }
+            `}
             aria-label="Close modal"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

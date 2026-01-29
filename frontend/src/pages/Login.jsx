@@ -50,7 +50,7 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex pt-20">
       {/* Left Side - Decorative */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-luxury-black via-luxury-charcoal to-luxury-slate relative overflow-hidden">
         {/* Background decorative elements */}

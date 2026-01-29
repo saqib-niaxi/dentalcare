@@ -15,13 +15,13 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static files from frontend folder
-app.use(express.static(path.join(__dirname, '..', 'frontend')));
-
-// Routes
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));
-});
+// Serve static files from frontend folder (only in development)
+if (process.env.NODE_ENV !== 'production') {
+  app.use(express.static(path.join(__dirname, '..', 'frontend')));
+  app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));
+  });
+}
 
 // Import routes
 const appointmentRoutes = require('./routes/appointmentRoutes');
@@ -39,6 +39,10 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+}
+
+module.exports = app;

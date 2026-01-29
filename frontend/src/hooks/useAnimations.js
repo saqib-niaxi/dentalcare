@@ -72,7 +72,7 @@ export function useStaggerReveal(options = {}) {
   const { prefersReducedMotion } = useAnimation()
 
   const {
-    selector = '> *',
+    selector = ':scope > *',
     stagger = 0.1,
     delay = 0,
     duration = 0.6,

@@ -21,13 +21,7 @@ gsap.config({
 
 // Initialize performance optimizations for luxury experience
 const initPerformanceOptimizations = () => {
-  // Enable hardware acceleration for smoother animations
-  if ('requestAnimationFrame' in window) {
-    gsap.ticker.useRAF(true)
-  }
-
-  // Optimize ScrollTrigger for smooth parallax
-  ScrollTrigger.normalizeScroll(true)
+  // GSAP uses requestAnimationFrame by default in modern versions
 
   // Reduce lag smoothing for crisp animations
   gsap.ticker.lagSmoothing(0)
