@@ -240,7 +240,7 @@ export default function Home() {
           >
             {[
               { icon: MapPinIcon, title: 'Address', lines: ['123 Main Street, Gulshan-e-Iqbal, Karachi'], color: 'text-primary bg-primary/10' },
-              { icon: PhoneIcon, title: 'Phone', lines: ['+92 301 2345678', 'Emergency: +92 300 1234567'], color: 'text-green-500 bg-green-50' },
+              { icon: PhoneIcon, title: 'Phone', lines: ['+92 320 2067666', 'Emergency: +92 300 6089947'], color: 'text-green-500 bg-green-50' },
               { icon: EnvelopeIcon, title: 'Email', lines: ['info@ahmeddental.com'], color: 'text-red-500 bg-red-50' }
             ].map((contact, index) => (
               <PremiumCard key={index} className="text-center bg-white" glow>

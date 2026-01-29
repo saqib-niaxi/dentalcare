@@ -101,8 +101,8 @@ export default function Contact() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-luxury-black">Phone</h3>
-                    <p className="text-gray-600">+92 301 2345678</p>
-                    <p className="text-gray-600">Emergency: +92 300 1234567</p>
+                    <p className="text-gray-600">+92 320 2067666</p>
+                    <p className="text-gray-600">Emergency: +92 300 6089947</p>
                   </div>
                 </div>
 
@@ -172,7 +172,7 @@ export default function Contact() {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    placeholder="+92 300 1234567"
+                    placeholder="+92 320 2067666"
                   />
 
                   <Textarea
@@ -210,12 +210,12 @@ export default function Contact() {
               We're here for you. Call our emergency line for immediate assistance.
             </p>
             <MagneticButton
-              href="tel:+923001234567"
+              href="tel:+923006089947"
               variant="glass"
               size="lg"
               className="!bg-white !text-accent hover:!bg-white/90"
             >
-              +92 300 1234567
+              +92 300 6089947
             </MagneticButton>
           </AnimatedSection>
         </div>
