@@ -98,7 +98,7 @@ export default function Modal({
   return (
     <div
       ref={backdropRef}
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+      className="fixed top-0 left-0 right-0 bottom-0 z-[9999] flex items-center justify-center p-4 w-screen h-screen"
       onClick={handleBackdropClick}
     >
       {/* Glassmorphism backdrop */}
@@ -115,7 +115,8 @@ export default function Modal({
           }
           backdrop-blur-xl
           rounded-2xl shadow-2xl
-          border
+          border z-[10000]
+          max-h-[85vh]
         `}
       >
         {/* Header */}

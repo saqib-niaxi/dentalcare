@@ -236,26 +236,22 @@ export default function AdminPanel() {
 
                 {/* Notification Dropdown Menu */}
                 {notificationOpen && (
-                  <div className="absolute right-0 mt-2 w-80 bg-slate-800 border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
-                    <div className="px-4 py-3 border-b border-white/10">
-                      <h3 className="text-white font-semibold">Notifications</h3>
-                      <p className="text-slate-400 text-xs">{stats.pending} pending appointments</p>
+                  <div className="absolute right-0 mt-3 w-96 bg-slate-800/95 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl overflow-hidden z-[1000] transition-all duration-200 origin-top-right animate-in fade-in slide-in-from-top-2" style={{ position: 'absolute', top: '100%', right: 0 }}>
+                    <div className="px-6 py-4 border-b border-white/10 bg-gradient-to-r from-slate-800 to-slate-700">
+                      <h3 className="text-white font-bold text-lg">Notifications</h3>
+                      <p className="text-slate-300 text-sm mt-1">{stats.pending} pending appointments</p>
                     </div>
-                    <div className="max-h-80 overflow-y-auto">
+                    <div className="max-h-96 overflow-y-auto p-2">
                       {pendingAppointments.length === 0 ? (
-                        <div className="px-4 py-8 text-center">
-                          <BellIcon className="w-10 h-10 text-slate-600 mx-auto mb-2" />
-                          <p className="text-slate-400 text-sm">No pending appointments</p>
+                        <div className="px-6 py-12 text-center">
+                          <BellIcon className="w-12 h-12 text-slate-500 mx-auto mb-3" />
+                          <p className="text-slate-400 text-sm font-medium">No pending appointments</p>
                         </div>
                       ) : (
                         pendingAppointments.map(apt => (
                           <div
                             key={apt._id}
-                            className="px-4 py-3 hover:bg-white/5 border-b border-white/5 last:border-b-0 cursor-pointer"
-                            onClick={() => {
-                              setActiveTab('appointments')
-                              setNotificationOpen(false)
-                            }}
+                            className="px-4 py-3 mb-2 hover:bg-white/10 bg-white/5 rounded-lg transition-all border border-white/5 hover:border-white/20"
                           >
                             <div className="flex items-center gap-3">
                               <div className="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center">
@@ -278,13 +274,13 @@ export default function AdminPanel() {
                       )}
                     </div>
                     {pendingAppointments.length > 0 && (
-                      <div className="px-4 py-3 border-t border-white/10">
+                      <div className="px-6 py-3 border-t border-white/10 bg-slate-900/50">
                         <button
                           onClick={() => {
                             setActiveTab('appointments')
                             setNotificationOpen(false)
                           }}
-                          className="w-full text-center text-amber-400 text-sm hover:text-amber-300 transition-colors"
+                          className="w-full text-center text-amber-400 text-sm font-medium hover:text-amber-300 hover:bg-amber-400/10 py-2 rounded-lg transition-all"
                         >
                           View All Appointments
                         </button>

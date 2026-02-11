@@ -6,7 +6,6 @@ import Button from '../../components/ui/Button'
 import Modal from '../../components/ui/Modal'
 import {
   ArrowPathIcon,
-  EyeIcon,
   CheckIcon,
   XMarkIcon,
   TrashIcon,
@@ -140,19 +139,32 @@ export default function AppointmentsTab({ appointments, onRefresh }) {
               <div className="flex flex-col lg:flex-row lg:items-center gap-4">
                 {/* Patient Info */}
                 <div className="flex items-center gap-4 flex-1">
-                  <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-amber-600 rounded-xl flex items-center justify-center text-slate-900 font-bold text-lg shrink-0">
-                    {appointment.patient?.name?.charAt(0).toUpperCase() || '?'}
+                  <div className={`w-12 h-12 ${appointment.source === 'chatbot' ? 'bg-gradient-to-br from-purple-400 to-purple-600' : 'bg-gradient-to-br from-amber-400 to-amber-600'} rounded-xl flex items-center justify-center text-slate-900 font-bold text-lg shrink-0`}>
+                    {(appointment.patient?.name || appointment.guestInfo?.name || '?').charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0">
-                    <h3 className="font-semibold text-white truncate">{appointment.patient?.name || 'Unknown'}</h3>
-                    <p className="text-slate-400 text-sm truncate">{appointment.patient?.email}</p>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-white truncate">
+                        {appointment.patient?.name || appointment.guestInfo?.name || 'Unknown'}
+                      </h3>
+                      {appointment.source === 'chatbot' && (
+                        <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 text-xs rounded-full border border-purple-500/30">
+                          Chatbot
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-slate-400 text-sm truncate">
+                      {appointment.patient?.email || appointment.guestInfo?.email || appointment.guestInfo?.phone || 'No contact'}
+                    </p>
                   </div>
                 </div>
 
                 {/* Service */}
                 <div className="lg:w-48">
                   <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Service</p>
-                  <p className="text-white font-medium truncate">{appointment.service?.name || 'General Consultation'}</p>
+                  <p className="text-white font-medium truncate">
+                    {appointment.service?.name || appointment.serviceType || 'General Consultation'}
+                  </p>
                 </div>
 
                 {/* Date & Time */}
@@ -175,13 +187,6 @@ export default function AppointmentsTab({ appointments, onRefresh }) {
 
                 {/* Actions */}
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setSelectedAppointment(appointment)}
-                    className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-all"
-                    title="View Details"
-                  >
-                    <EyeIcon className="w-5 h-5" />
-                  </button>
                   {appointment.status === 'pending' && (
                     <button
                       onClick={() => handleStatusUpdate(appointment._id, 'approved')}

@@ -4,12 +4,21 @@ const appointmentSchema = new mongoose.Schema({
   patient: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: [true, 'Patient is required']
+    required: false // Optional for chatbot/guest bookings
+  },
+  // Guest info for chatbot bookings (when no registered user)
+  guestInfo: {
+    name: { type: String },
+    phone: { type: String },
+    email: { type: String }
   },
   service: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Service'
     // Optional - allows consultations without a specific service
+  },
+  serviceType: {
+    type: String // For chatbot bookings: "Routine Cleaning", "Emergency", etc.
   },
   date: {
     type: Date,
@@ -26,6 +35,11 @@ const appointmentSchema = new mongoose.Schema({
   },
   notes: {
     type: String
+  },
+  source: {
+    type: String,
+    enum: ['website', 'chatbot', 'phone', 'walk-in'],
+    default: 'website'
   }
 }, {
   timestamps: true

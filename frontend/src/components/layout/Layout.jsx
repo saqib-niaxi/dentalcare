@@ -4,6 +4,7 @@ import Footer from './Footer'
 import Preloader from '../ui/Preloader'
 import ScrollProgress from '../ui/ScrollProgress'
 import { BackToTop } from '../ui/ScrollProgress'
+import ChatbotWidget from '../chatbot/ChatbotWidget'
 import { useAnimation } from '../../context/AnimationContext'
 
 export default function Layout({ children }) {
@@ -48,6 +49,9 @@ export default function Layout({ children }) {
 
       {/* Back to Top Button */}
       <BackToTop />
+
+      {/* Chatbot Widget */}
+      <ChatbotWidget />
     </div>
   )
 }
