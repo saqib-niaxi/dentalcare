@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
+import axios from 'axios'
 import { useAuth } from '../context/AuthContext'
 import { useNotification } from '../context/NotificationContext'
 import { useServices } from '../hooks/useServices'
@@ -32,10 +33,37 @@ export default function BookAppointment() {
     time: '',
     notes: ''
   })
+  const [bookedSlots, setBookedSlots] = useState([])
 
   useEffect(() => {
     fetchServices()
   }, [fetchServices])
+
+  // Fetch booked appointments when date changes
+  useEffect(() => {
+    const fetchBookedSlots = async () => {
+      if (!formData.date) {
+        setBookedSlots([])
+        return
+      }
+
+      try {
+        const response = await axios.get('/api/appointments')
+        const selectedDateStr = formData.date
+        const bookedForDate = response.data.appointments
+          .filter(apt => {
+            const aptDate = new Date(apt.date).toISOString().split('T')[0]
+            return aptDate === selectedDateStr && apt.status !== 'cancelled'
+          })
+          .map(apt => apt.time)
+        setBookedSlots(bookedForDate)
+      } catch (err) {
+        console.error('Failed to fetch booked slots:', err)
+      }
+    }
+
+    fetchBookedSlots()
+  }, [formData.date])
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -71,26 +99,65 @@ export default function BookAppointment() {
     }
   }
 
-  // Generate time slots
-  const timeSlots = []
-  for (let hour = 9; hour < 18; hour++) {
-    const time24 = `${hour.toString().padStart(2, '0')}:00`
-    const hour12 = hour > 12 ? hour - 12 : hour
-    const ampm = hour >= 12 ? 'PM' : 'AM'
-    timeSlots.push({
-      value: time24,
-      label: `${hour12}:00 ${ampm}`
-    })
-    if (hour < 17) {
-      timeSlots.push({
-        value: `${hour.toString().padStart(2, '0')}:30`,
-        label: `${hour12}:30 ${ampm}`
-      })
+  // Generate time slots based on selected date
+  const generateTimeSlots = () => {
+    if (!formData.date) return []
+
+    const selectedDate = new Date(formData.date)
+    const dayOfWeek = selectedDate.getDay() // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+
+    // Sunday - clinic closed
+    if (dayOfWeek === 0) {
+      return []
     }
+
+    const slots = []
+    let endHour = 18 // Default: Monday-Friday (9 AM - 6 PM)
+
+    // Saturday: 9 AM - 2 PM
+    if (dayOfWeek === 6) {
+      endHour = 14
+    }
+
+    for (let hour = 9; hour < endHour; hour++) {
+      const time24 = `${hour.toString().padStart(2, '0')}:00`
+      const hour12 = hour > 12 ? hour - 12 : hour === 12 ? 12 : hour
+      const ampm = hour >= 12 ? 'PM' : 'AM'
+
+      // Check if this slot is booked
+      const isBooked = bookedSlots.includes(time24)
+      if (!isBooked) {
+        slots.push({
+          value: time24,
+          label: `${hour12}:00 ${ampm}`
+        })
+      }
+
+      if (hour < endHour - 1) {
+        const time3024 = `${hour.toString().padStart(2, '0')}:30`
+        const isBooked30 = bookedSlots.includes(time3024)
+        if (!isBooked30) {
+          slots.push({
+            value: time3024,
+            label: `${hour12}:30 ${ampm}`
+          })
+        }
+      }
+    }
+
+    return slots
   }
 
-  // Get minimum date (today)
-  const today = new Date().toISOString().split('T')[0]
+  // Get minimum date (tomorrow instead of today)
+  const today = new Date()
+  const tomorrow = new Date(today)
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  const minDate = tomorrow.toISOString().split('T')[0]
+
+  // Check if selected date is Sunday
+  const selectedDate = formData.date ? new Date(formData.date) : null
+  const isSunday = selectedDate && selectedDate.getDay() === 0
+  const timeSlots = generateTimeSlots()
 
   if (!isAuthenticated || isAdmin) {
     return <PageLoader />
@@ -155,19 +222,34 @@ export default function BookAppointment() {
                           name="date"
                           value={formData.date}
                           onChange={handleChange}
-                          min={today}
+                          min={minDate}
                           required
                         />
 
-                        <Select
-                          label="Preferred Time"
-                          name="time"
-                          value={formData.time}
-                          onChange={handleChange}
-                          placeholder="Choose a time slot"
-                          options={timeSlots}
-                          required
-                        />
+                        <div>
+                          <Select
+                            label="Preferred Time"
+                            name="time"
+                            value={formData.time}
+                            onChange={handleChange}
+                            placeholder={isSunday ? "Clinic Closed" : "Choose a time slot"}
+                            options={timeSlots}
+                            disabled={isSunday || timeSlots.length === 0 || !formData.date}
+                            required
+                          />
+                          {isSunday && (
+                            <p className="text-red-500 text-sm mt-1">Clinic is closed on Sundays</p>
+                          )}
+                          {!isSunday && !formData.date && (
+                            <p className="text-gray-500 text-sm mt-1">Select a date first</p>
+                          )}
+                          {!isSunday && formData.date && timeSlots.length === 0 && bookedSlots.length > 0 && (
+                            <p className="text-red-500 text-sm mt-1">All slots are booked. Please select another date.</p>
+                          )}
+                          {!isSunday && formData.date && bookedSlots.length > 0 && (
+                            <p className="text-amber-600 text-sm mt-1">{bookedSlots.length} slot(s) already booked on this date</p>
+                          )}
+                        </div>
                       </div>
 
                       <Textarea

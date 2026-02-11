@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import axios from 'axios'
 import Input, { Textarea } from '../components/ui/Input'
 import Button from '../components/ui/Button'
 import { useNotification } from '../context/NotificationContext'
@@ -34,14 +35,24 @@ export default function Contact() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    // Validate form
+    if (!formData.name || !formData.email || !formData.message) {
+      error('Please fill in all required fields')
+      return
+    }
+
     setLoading(true)
 
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1000))
-
-    success('Thank you for your message! We will get back to you soon.')
-    setFormData({ name: '', email: '', phone: '', message: '' })
-    setLoading(false)
+    try {
+      const response = await axios.post('/api/contact', formData)
+      success(response.data.message)
+      setFormData({ name: '', email: '', phone: '', message: '' })
+    } catch (err) {
+      error(err.response?.data?.message || 'Failed to send message. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
