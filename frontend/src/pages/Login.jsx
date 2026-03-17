@@ -62,7 +62,7 @@ export default function Login() {
         <div className="relative z-10 flex flex-col justify-center items-center w-full p-12 text-center">
           <AnimatedSection animation="fadeUp">
             <h1 className="text-4xl md:text-5xl font-serif font-bold text-white mb-6">
-              Welcome to <GradientText>Dr. Ahmed</GradientText>
+              Welcome to <GradientText>Dr. Hanif Niazi</GradientText>
             </h1>
             <p className="text-white/70 text-lg max-w-md">
               Your trusted partner for exceptional dental care. Sign in to manage your appointments and oral health journey.
@@ -91,10 +91,10 @@ export default function Login() {
       </div>
 
       {/* Right Side - Login Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center py-12 px-4 bg-luxury-cream">
+      <div className="w-full lg:w-1/2 flex items-center justify-center py-12 px-4 bg-luxury-cream dark:bg-luxury-charcoal">
         <div className="max-w-md w-full">
           <AnimatedSection animation="fadeUp">
-            <PremiumCard className="bg-white" glow>
+            <PremiumCard glow>
               <div className="text-center mb-8">
                 <p className="text-luxury-gold tracking-widest text-sm mb-2 uppercase">Welcome Back</p>
                 <AnimatedHeading level={1} className="text-3xl text-luxury-black">
@@ -146,7 +146,7 @@ export default function Login() {
                   <div className="w-full border-t border-gray-200" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-white text-gray-500">New here?</span>
+                  <span className="px-4 bg-white dark:bg-luxury-charcoal text-gray-500 dark:text-gray-400">New here?</span>
                 </div>
               </div>
 

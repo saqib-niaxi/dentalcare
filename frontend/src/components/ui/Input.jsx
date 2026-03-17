@@ -16,7 +16,7 @@ export default function Input({
       {label && (
         <label
           htmlFor={name}
-          className="block text-gray-700 font-medium mb-2"
+          className="block text-gray-700 dark:text-gray-200 font-medium mb-2"
         >
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
@@ -31,8 +31,8 @@ export default function Input({
         placeholder={placeholder}
         disabled={disabled}
         required={required}
-        className={`input-field ${error ? 'border-red-500 focus:ring-red-500' : ''} ${
-          disabled ? 'bg-gray-100 cursor-not-allowed' : ''
+        className={`input-field dark:bg-luxury-slate dark:border-white/15 dark:text-gray-100 dark:placeholder-gray-500 ${error ? 'border-red-500 focus:ring-red-500' : ''} ${
+          disabled ? 'bg-gray-100 dark:bg-luxury-black cursor-not-allowed' : ''
         }`}
         {...props}
       />
@@ -60,7 +60,7 @@ export function Select({
       {label && (
         <label
           htmlFor={name}
-          className="block text-gray-700 font-medium mb-2"
+          className="block text-gray-700 dark:text-gray-200 font-medium mb-2"
         >
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
@@ -73,8 +73,8 @@ export function Select({
         onChange={onChange}
         disabled={disabled}
         required={required}
-        className={`input-field ${error ? 'border-red-500 focus:ring-red-500' : ''} ${
-          disabled ? 'bg-gray-100 cursor-not-allowed' : ''
+        className={`input-field dark:bg-luxury-slate dark:border-white/15 dark:text-gray-100 ${error ? 'border-red-500 focus:ring-red-500' : ''} ${
+          disabled ? 'bg-gray-100 dark:bg-luxury-black cursor-not-allowed' : ''
         }`}
       >
         <option value="">{placeholder}</option>
@@ -108,7 +108,7 @@ export function Textarea({
       {label && (
         <label
           htmlFor={name}
-          className="block text-gray-700 font-medium mb-2"
+          className="block text-gray-700 dark:text-gray-200 font-medium mb-2"
         >
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
@@ -123,8 +123,8 @@ export function Textarea({
         rows={rows}
         disabled={disabled}
         required={required}
-        className={`input-field resize-none ${error ? 'border-red-500 focus:ring-red-500' : ''} ${
-          disabled ? 'bg-gray-100 cursor-not-allowed' : ''
+        className={`input-field resize-none dark:bg-luxury-slate dark:border-white/15 dark:text-gray-100 dark:placeholder-gray-500 ${error ? 'border-red-500 focus:ring-red-500' : ''} ${
+          disabled ? 'bg-gray-100 dark:bg-luxury-black cursor-not-allowed' : ''
         }`}
       />
       {error && (

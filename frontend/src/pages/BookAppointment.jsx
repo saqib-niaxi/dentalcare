@@ -5,12 +5,14 @@ import { useAuth } from '../context/AuthContext'
 import { useNotification } from '../context/NotificationContext'
 import { useServices } from '../hooks/useServices'
 import { useAppointments } from '../hooks/useAppointments'
+import { useDoctors } from '../hooks/useDoctors'
 import Input, { Select, Textarea } from '../components/ui/Input'
 import { PageLoader } from '../components/ui/LoadingSpinner'
 import AnimatedSection, { AnimatedChildren } from '../components/animations/AnimatedSection'
 import { AnimatedHeading, GradientText } from '../components/ui/AnimatedText'
 import PremiumCard from '../components/ui/PremiumCard'
 import MagneticButton from '../components/ui/MagneticButton'
+import AppointmentCard from '../components/ui/AppointmentCard'
 import {
   CalendarDaysIcon,
   ClockIcon,
@@ -26,20 +28,63 @@ export default function BookAppointment() {
   const { success, error } = useNotification()
   const { services, loading: servicesLoading, fetchServices } = useServices()
   const { createAppointment, loading: bookingLoading } = useAppointments()
+  const { doctors, loading: doctorsLoading, fetchDoctorsByService, fetchDoctorAvailability } = useDoctors()
 
   const [formData, setFormData] = useState({
     service: location.state?.service || '',
+    doctor: '',
     date: '',
     time: '',
     notes: ''
   })
   const [bookedSlots, setBookedSlots] = useState([])
+  const [availableSlots, setAvailableSlots] = useState([])
+  const [bookedAppointment, setBookedAppointment] = useState(null)
 
   useEffect(() => {
     fetchServices()
   }, [fetchServices])
 
-  // Fetch booked appointments when date changes
+  // Fetch doctors when service changes
+  useEffect(() => {
+    if (formData.service) {
+      fetchDoctorsByService(formData.service)
+      // Reset doctor selection when service changes
+      setFormData(prev => ({ ...prev, doctor: '', date: '', time: '' }))
+    }
+  }, [formData.service, fetchDoctorsByService])
+
+  // Auto-select favorite doctor when doctors load
+  useEffect(() => {
+    if (!formData.doctor && doctors.length > 0) {
+      const favId = localStorage.getItem('favoriteDoctorId')
+      if (favId && doctors.some(d => d._id === favId)) {
+        setFormData(prev => ({ ...prev, doctor: favId }))
+      }
+    }
+  }, [doctors])
+
+  // Fetch available slots when doctor and date change
+  useEffect(() => {
+    const fetchSlots = async () => {
+      if (!formData.doctor || !formData.date) {
+        setAvailableSlots([])
+        return
+      }
+
+      try {
+        const slots = await fetchDoctorAvailability(formData.doctor, formData.date)
+        setAvailableSlots(slots)
+      } catch (err) {
+        console.error('Failed to fetch available slots:', err)
+        setAvailableSlots([])
+      }
+    }
+
+    fetchSlots()
+  }, [formData.doctor, formData.date, fetchDoctorAvailability])
+
+  // Fetch booked appointments when date changes (legacy - now using doctor-specific availability)
   useEffect(() => {
     const fetchBookedSlots = async () => {
       if (!formData.date) {
@@ -85,67 +130,35 @@ export default function BookAppointment() {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    if (!formData.service || !formData.date || !formData.time) {
+    if (!formData.service || !formData.doctor || !formData.date || !formData.time) {
       error('Please fill in all required fields')
       return
     }
 
     try {
-      await createAppointment(formData)
+      const result = await createAppointment(formData)
       success('Appointment booked successfully!')
-      navigate('/my-appointments')
+      setBookedAppointment(result)
     } catch (err) {
       error(err.response?.data?.message || 'Failed to book appointment')
     }
   }
 
-  // Generate time slots based on selected date
+  // Generate time slots based on doctor's availability
   const generateTimeSlots = () => {
-    if (!formData.date) return []
+    if (!formData.doctor || !formData.date) return []
 
-    const selectedDate = new Date(formData.date)
-    const dayOfWeek = selectedDate.getDay() // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+    // Convert available slots (24-hour format) to display format
+    return availableSlots.map(slot => {
+      const [hours, minutes] = slot.split(':').map(Number)
+      const hour12 = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours
+      const ampm = hours >= 12 ? 'PM' : 'AM'
 
-    // Sunday - clinic closed
-    if (dayOfWeek === 0) {
-      return []
-    }
-
-    const slots = []
-    let endHour = 18 // Default: Monday-Friday (9 AM - 6 PM)
-
-    // Saturday: 9 AM - 2 PM
-    if (dayOfWeek === 6) {
-      endHour = 14
-    }
-
-    for (let hour = 9; hour < endHour; hour++) {
-      const time24 = `${hour.toString().padStart(2, '0')}:00`
-      const hour12 = hour > 12 ? hour - 12 : hour === 12 ? 12 : hour
-      const ampm = hour >= 12 ? 'PM' : 'AM'
-
-      // Check if this slot is booked
-      const isBooked = bookedSlots.includes(time24)
-      if (!isBooked) {
-        slots.push({
-          value: time24,
-          label: `${hour12}:00 ${ampm}`
-        })
+      return {
+        value: slot,
+        label: `${hour12}:${minutes.toString().padStart(2, '0')} ${ampm}`
       }
-
-      if (hour < endHour - 1) {
-        const time3024 = `${hour.toString().padStart(2, '0')}:30`
-        const isBooked30 = bookedSlots.includes(time3024)
-        if (!isBooked30) {
-          slots.push({
-            value: time3024,
-            label: `${hour12}:30 ${ampm}`
-          })
-        }
-      }
-    }
-
-    return slots
+    })
   }
 
   // Get minimum date (tomorrow instead of today)
@@ -154,13 +167,54 @@ export default function BookAppointment() {
   tomorrow.setDate(tomorrow.getDate() + 1)
   const minDate = tomorrow.toISOString().split('T')[0]
 
-  // Check if selected date is Sunday
-  const selectedDate = formData.date ? new Date(formData.date) : null
-  const isSunday = selectedDate && selectedDate.getDay() === 0
+  // Generate time slots for the selected doctor and date
   const timeSlots = generateTimeSlots()
+
+  // Get selected doctor info
+  const selectedDoctor = doctors.find(d => d._id === formData.doctor)
 
   if (!isAuthenticated || isAdmin) {
     return <PageLoader />
+  }
+
+  // Show success view after booking
+  if (bookedAppointment) {
+    return (
+      <div className="overflow-hidden">
+        <section className="relative bg-gradient-to-br from-luxury-black via-luxury-charcoal to-luxury-slate text-white py-24 md:py-32">
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <AnimatedHeading level={1} className="text-4xl md:text-5xl text-white mb-6">
+              Booking <GradientText>Confirmed!</GradientText>
+            </AnimatedHeading>
+          </div>
+        </section>
+        <section className="py-20 bg-luxury-cream">
+          <div className="max-w-lg mx-auto px-4 text-center">
+            <AnimatedSection animation="fadeUp">
+              <PremiumCard glow>
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircleIcon className="w-10 h-10 text-green-600" />
+                </div>
+                <h2 className="text-2xl font-bold text-luxury-black mb-2">Appointment Booked!</h2>
+                <p className="text-gray-600 mb-6">Your appointment has been successfully scheduled. You'll receive a confirmation shortly.</p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <AppointmentCard appointment={bookedAppointment} trigger={
+                    <MagneticButton variant="luxury" magnetic={false}>
+                      Print Appointment Card
+                    </MagneticButton>
+                  } />
+                  <Link to="/my-appointments">
+                    <MagneticButton variant="primary" magnetic={false}>
+                      View All Appointments
+                    </MagneticButton>
+                  </Link>
+                </div>
+              </PremiumCard>
+            </AnimatedSection>
+          </div>
+        </section>
+      </div>
+    )
   }
 
   return (
@@ -182,7 +236,7 @@ export default function BookAppointment() {
           </AnimatedHeading>
           <AnimatedSection animation="fadeUp" delay={0.3}>
             <p className="text-lg text-white/80 max-w-2xl mx-auto">
-              Schedule your visit with Dr. Ahmed. We'll confirm your appointment shortly.
+              Schedule your visit with Dr. Hanif Niazi. We'll confirm your appointment shortly.
             </p>
           </AnimatedSection>
         </div>
@@ -195,7 +249,7 @@ export default function BookAppointment() {
             {/* Form */}
             <div className="md:col-span-2">
               <AnimatedSection animation="fadeUp">
-                <PremiumCard className="bg-white" glow>
+                <PremiumCard glow>
                   <h2 className="text-2xl font-bold text-luxury-black mb-6">Appointment Details</h2>
 
                   {servicesLoading ? (
@@ -215,6 +269,23 @@ export default function BookAppointment() {
                         required
                       />
 
+                      <Select
+                        label="Select Doctor"
+                        name="doctor"
+                        value={formData.doctor}
+                        onChange={handleChange}
+                        placeholder={formData.service ? (doctorsLoading ? "Loading doctors..." : "Choose a doctor") : "Select a service first"}
+                        options={doctors.map(d => ({
+                          value: d._id,
+                          label: `Dr. ${d.name} - ${d.specialization} (${d.experience} years exp)`
+                        }))}
+                        disabled={!formData.service || doctorsLoading}
+                        required
+                      />
+                      {formData.service && doctors.length === 0 && !doctorsLoading && (
+                        <p className="text-amber-600 text-sm -mt-2 mb-4">No doctors available for this service</p>
+                      )}
+
                       <div className="grid sm:grid-cols-2 gap-4">
                         <Input
                           label="Preferred Date"
@@ -232,22 +303,24 @@ export default function BookAppointment() {
                             name="time"
                             value={formData.time}
                             onChange={handleChange}
-                            placeholder={isSunday ? "Clinic Closed" : "Choose a time slot"}
+                            placeholder={!formData.doctor ? "Select doctor first" : !formData.date ? "Select date first" : timeSlots.length === 0 ? "No slots available" : "Choose a time slot"}
                             options={timeSlots}
-                            disabled={isSunday || timeSlots.length === 0 || !formData.date}
+                            disabled={!formData.doctor || !formData.date || timeSlots.length === 0}
                             required
                           />
-                          {isSunday && (
-                            <p className="text-red-500 text-sm mt-1">Clinic is closed on Sundays</p>
+                          {!formData.doctor && (
+                            <p className="text-gray-500 text-sm mt-1">Select a doctor first</p>
                           )}
-                          {!isSunday && !formData.date && (
-                            <p className="text-gray-500 text-sm mt-1">Select a date first</p>
+                          {formData.doctor && !formData.date && (
+                            <p className="text-gray-500 text-sm mt-1">Select a date to see available slots</p>
                           )}
-                          {!isSunday && formData.date && timeSlots.length === 0 && bookedSlots.length > 0 && (
-                            <p className="text-red-500 text-sm mt-1">All slots are booked. Please select another date.</p>
+                          {formData.doctor && formData.date && timeSlots.length === 0 && (
+                            <p className="text-red-500 text-sm mt-1">
+                              {selectedDoctor ? `Dr. ${selectedDoctor.name} has no available slots on this date. Please select another date.` : 'No slots available. Please select another date.'}
+                            </p>
                           )}
-                          {!isSunday && formData.date && bookedSlots.length > 0 && (
-                            <p className="text-amber-600 text-sm mt-1">{bookedSlots.length} slot(s) already booked on this date</p>
+                          {formData.doctor && formData.date && timeSlots.length > 0 && (
+                            <p className="text-green-600 text-sm mt-1">{timeSlots.length} slot(s) available with Dr. {selectedDoctor?.name}</p>
                           )}
                         </div>
                       </div>
@@ -300,7 +373,7 @@ export default function BookAppointment() {
                   </ul>
                 </PremiumCard>
 
-                <PremiumCard className="bg-white">
+                <PremiumCard>
                   <h3 className="font-semibold text-lg text-luxury-black mb-4">Clinic Hours</h3>
                   <div className="space-y-2 text-sm">
                     {[

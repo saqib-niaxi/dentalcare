@@ -44,6 +44,12 @@ export function AuthProvider({ children }) {
     return userData
   }
 
+  const updateUser = (userData) => {
+    const updated = { ...user, ...userData }
+    localStorage.setItem('user', JSON.stringify(updated))
+    setUser(updated)
+  }
+
   const logout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
@@ -61,7 +67,8 @@ export function AuthProvider({ children }) {
     login,
     register,
     verifyOTP,
-    logout
+    logout,
+    updateUser
   }
 
   return (

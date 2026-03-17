@@ -158,10 +158,10 @@ export default function ForgotPassword() {
       </div>
 
       {/* Right Side - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center py-12 px-4 bg-luxury-cream">
+      <div className="w-full lg:w-1/2 flex items-center justify-center py-12 px-4 bg-luxury-cream dark:bg-luxury-charcoal">
         <div className="max-w-md w-full">
           <AnimatedSection animation="fadeUp">
-            <PremiumCard className="bg-white" glow>
+            <PremiumCard glow>
               {step === 1 && (
                 <>
                   <div className="text-center mb-8">

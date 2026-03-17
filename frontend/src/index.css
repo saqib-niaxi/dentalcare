@@ -449,6 +449,40 @@ h1, h2, h3, h4, h5, h6 {
   scrollbar-color: var(--luxury-gold) var(--luxury-cream);
 }
 
+/* Dark Modal Scrollbar - Always Visible */
+.modal-scrollbar {
+  overflow-y: scroll !important; /* Force scrollbar to always show */
+  scrollbar-width: thin;
+  scrollbar-color: #f59e0b rgba(30, 41, 59, 0.5);
+}
+
+.modal-scrollbar::-webkit-scrollbar {
+  width: 14px;
+  height: 14px;
+}
+
+.modal-scrollbar::-webkit-scrollbar-track {
+  background: rgba(30, 41, 59, 0.5);
+  border-radius: 10px;
+  margin: 4px 0;
+}
+
+.modal-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+  border-radius: 10px;
+  border: 3px solid rgba(30, 41, 59, 0.5);
+  min-height: 40px;
+}
+
+.modal-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%);
+  border: 2px solid rgba(30, 41, 59, 0.5);
+}
+
+.modal-scrollbar::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, #d97706 0%, #b45309 100%);
+}
+
 /* ============================================
    Reduced Motion Support
    ============================================ */
@@ -638,3 +672,144 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--luxury-gold);
   color: var(--luxury-black);
 }
+
+/* ============================================
+   Dark Mode - Smooth Transition
+   ============================================ */
+html {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.dark {
+  color-scheme: dark;
+}
+
+/* ============================================
+   Dark Mode Overrides
+   ============================================ */
+.dark body {
+  color: #e5e7eb;
+  background-color: var(--luxury-black);
+}
+
+/* ---- Backgrounds ---- */
+.dark .bg-luxury-cream,
+.dark section.bg-luxury-cream,
+.dark div.bg-luxury-cream {
+  background-color: var(--luxury-charcoal) !important;
+}
+
+.dark .bg-white {
+  background-color: #1e1e1e;
+}
+
+.dark .bg-white\/90,
+.dark .bg-white\/80,
+.dark .bg-white\/70 {
+  background-color: rgba(26, 26, 26, 0.95);
+}
+
+.dark .bg-gray-50 {
+  background-color: #252525;
+}
+
+.dark .bg-gray-100 {
+  background-color: #2d2d2d;
+}
+
+.dark .bg-green-100 {
+  background-color: rgba(16, 185, 129, 0.15);
+}
+
+/* ---- Glass components ---- */
+.dark .glass-navbar {
+  background: rgba(10, 10, 10, 0.92);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+.dark .glass-card {
+  background: rgba(26, 26, 26, 0.85);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.dark .premium-card {
+  background: rgba(26, 26, 26, 0.95);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.dark .premium-card:hover {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+}
+
+/* ---- Text ---- */
+.dark .text-luxury-black,
+.dark .text-luxury-charcoal {
+  color: #f3f4f6;
+}
+
+.dark .text-gray-900 { color: #f9fafb; }
+.dark .text-gray-800 { color: #f3f4f6; }
+.dark .text-gray-700 { color: #d1d5db; }
+.dark .text-gray-600 { color: #9ca3af; }
+.dark .text-gray-500 { color: #6b7280; }
+
+/* ---- Borders ---- */
+.dark .border-gray-100 { border-color: rgba(255, 255, 255, 0.07); }
+.dark .border-gray-200 { border-color: rgba(255, 255, 255, 0.10); }
+.dark .border-gray-300 { border-color: rgba(255, 255, 255, 0.15); }
+
+/* ---- Form inputs ---- */
+.dark .input-field {
+  background-color: #2a2a2a;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #e5e7eb;
+}
+
+.dark .input-field::placeholder {
+  color: #6b7280;
+}
+
+.dark .input-field:focus {
+  border-color: var(--luxury-gold);
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+}
+
+/* Native select options */
+.dark select option {
+  background-color: #2a2a2a;
+  color: #e5e7eb;
+}
+
+/* ---- Dividers / separators ---- */
+.dark .border-t { border-top-color: rgba(255, 255, 255, 0.08); }
+.dark .border-b { border-bottom-color: rgba(255, 255, 255, 0.08); }
+.dark .divide-gray-200 > * + * { border-color: rgba(255, 255, 255, 0.08); }
+
+/* ---- Login page divider "New here?" span ---- */
+.dark span.bg-white {
+  background-color: #1e1e1e;
+  color: #9ca3af;
+}
+
+/* ---- Scrollbars ---- */
+.dark ::-webkit-scrollbar-track {
+  background: var(--luxury-charcoal);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  border-color: var(--luxury-charcoal);
+}
+
+/* ---- Hover states ---- */
+.dark .hover\:bg-gray-100:hover {
+  background-color: rgba(255, 255, 255, 0.07);
+}
+
+.dark .hover\:bg-gray-50:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+

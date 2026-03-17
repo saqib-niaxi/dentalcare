@@ -98,11 +98,11 @@ export default function Modal({
   return (
     <div
       ref={backdropRef}
-      className="fixed top-0 left-0 right-0 bottom-0 z-[9999] flex items-center justify-center p-4 w-screen h-screen"
+      className="fixed inset-0 z-[9999] flex items-start sm:items-center justify-center p-4 overflow-y-auto"
       onClick={handleBackdropClick}
     >
       {/* Glassmorphism backdrop */}
-      <div className={`absolute inset-0 backdrop-blur-sm ${dark ? 'bg-black/70' : 'bg-luxury-black/60'}`} />
+      <div className={`fixed inset-0 backdrop-blur-sm ${dark ? 'bg-black/70' : 'bg-luxury-black/60'}`} />
 
       {/* Modal */}
       <div
@@ -116,11 +116,13 @@ export default function Modal({
           backdrop-blur-xl
           rounded-2xl shadow-2xl
           border z-[10000]
-          max-h-[85vh]
+          max-h-[min(90vh,calc(100%-2rem))]
+          flex flex-col
+          my-4 sm:my-8
         `}
       >
         {/* Header */}
-        <div className={`flex items-center justify-between p-6 border-b ${dark ? 'border-white/10' : 'border-gray-100'}`}>
+        <div className={`flex items-center justify-between px-6 py-4 border-b flex-shrink-0 ${dark ? 'border-white/10' : 'border-gray-100'}`}>
           <h3 className={`text-xl font-serif font-semibold ${dark ? 'text-white' : 'text-luxury-charcoal'}`}>
             {title}
           </h3>
@@ -143,8 +145,11 @@ export default function Modal({
           </button>
         </div>
 
-        {/* Content */}
-        <div className="p-6 max-h-[70vh] overflow-y-auto">
+        {/* Content - Scrollable with custom scrollbar */}
+        <div
+          className="p-6 modal-scrollbar flex-1 overflow-y-auto min-h-0"
+          data-lenis-prevent
+        >
           {children}
         </div>
       </div>

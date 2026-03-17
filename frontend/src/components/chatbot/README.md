@@ -1,284 +1,225 @@
-# Dental Chatbot Widget - Advanced Intelligent Version
+# AI-Powered Dental Chatbot Widget
 
-A fully intelligent, context-aware chatbot for Dr. Ahmed Dental Care. This advanced version understands natural language, handles typos, maintains conversation context, and provides comprehensive answers to dental questions.
+An intelligent, AI-powered chatbot for Dr. Ahmed Dental Care using Google Gemini API. This chatbot understands natural language, handles complex conversations, books appointments with real-time availability checking, and provides personalized responses based on user authentication status.
 
 ## Key Features
 
-### Intelligence
-- **Natural Language Understanding** - Regex-based intent matching with typo correction
-- **Context Memory** - Remembers conversation flow and previous topics
-- **Multi-step Flows** - Complete appointment booking with data collection
-- **Emergency Detection** - Prioritizes urgent situations with immediate help
-- **Service Knowledge** - Detailed info on all services with pricing
+### AI Intelligence (Google Gemini 1.5 Flash)
+- **Natural Language Understanding** - Powered by Google Gemini for human-like conversations
+- **Function Calling** - Real-time appointment booking with database integration
+- **Context Memory** - MongoDB-persisted conversation history
+- **Authentication Awareness** - Different experiences for logged-in vs guest users
+- **Emergency Detection** - Prioritizes urgent situations with immediate guidance
 
-### User Experience
-- **Matches Website Design** - Luxury gold/black theme, Playfair Display fonts
-- **Quick Action Buttons** - Pre-built options for common queries
-- **Typing Indicator** - Natural conversation feel
-- **Persistent Chat** - Remembers conversation during session
-- **Mobile Responsive** - Works on all screen sizes
+### Capabilities
+- **Book Appointments** - Check real availability, collect info, confirm booking
+- **Service Information** - Detailed info on all services with accurate pricing
+- **Clinic Information** - Hours, location, contact details
+- **Emergency Guidance** - Immediate help for dental emergencies
+- **User Recognition** - Pre-fills data for logged-in users
+
+## Architecture
+
+```
+Frontend (React)              Backend (Node.js)              External
+┌─────────────────┐          ┌─────────────────┐          ┌──────────┐
+│ ChatbotWidget   │◄────────►│ /api/chatbot/*  │◄────────►│ Google   │
+│ + AuthContext   │  REST    │ + GeminiService │  API     │ Gemini   │
+│ + useChatSession│          │ + SessionMgr    │          └──────────┘
+└─────────────────┘          └────────┬────────┘
+                                      │
+                             ┌────────▼────────┐
+                             │    MongoDB      │
+                             │ - chat_sessions │
+                             │ - chat_messages │
+                             └─────────────────┘
+```
 
 ## Files Structure
 
 ```
 chatbot/
-├── ChatbotWidget.jsx    # Main React component with AI logic
-├── ChatbotConfig.js     # Knowledge base and configuration
-├── index.js             # Exports
-└── README.md            # This documentation
+├── ChatbotWidget.jsx        # Main React component (UI)
+├── ChatbotConfig.js         # Clinic info and quick actions
+├── hooks/
+│   └── useChatSession.js    # Session management hook
+├── index.js                 # Exports
+└── README.md                # This documentation
+
+backend/
+├── models/
+│   ├── ChatSession.js       # Session schema
+│   └── ChatMessage.js       # Message schema
+├── services/
+│   ├── geminiService.js     # Gemini AI integration
+│   └── chatSessionManager.js # Session CRUD
+├── controllers/
+│   └── chatbotController.js # Request handlers
+├── routes/
+│   └── chatbotRoutes.js     # API routes
+└── middleware/
+    └── optionalAuth.js      # Soft authentication
 ```
 
-## Configuration
+## API Endpoints
 
-### Clinic Information (ChatbotConfig.js)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/chatbot/message` | Send message, get AI response |
+| POST | `/api/chatbot/session` | Create new session |
+| GET | `/api/chatbot/session/:id` | Get session history |
+| DELETE | `/api/chatbot/session/:id` | Clear session |
+| PUT | `/api/chatbot/session/:id/auth` | Update session with auth |
+| GET | `/api/chatbot/quick-info` | Get clinic info |
 
-```javascript
-export const chatbotConfig = {
-  clinicName: 'Dr. Ahmed Dental Care',
-  phone: '+92 320 2067666',
-  emergencyPhone: '+92 300 6089947',
-  email: 'info@ahmeddental.com',
-  address: '123 Main Street, Gulshan-e-Iqbal, Karachi',
+## Environment Variables
 
-  officeHours: {
-    monday: '9:00 AM - 6:00 PM',
-    // ... other days
-  },
+Add to `.env`:
 
-  acceptedInsurance: [
-    'State Life Insurance',
-    'Jubilee Health Insurance',
-    // ... more
-  ]
-}
+```bash
+# Google Gemini AI Configuration
+GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_MODEL=gemini-1.5-flash
+
+# Chatbot Configuration
+CHATBOT_RATE_LIMIT=10
+CHATBOT_SESSION_TIMEOUT=7200000
 ```
 
-### Widget Behavior
+Get your FREE API key from: https://aistudio.google.com/app/apikey
 
-```javascript
-autoOpen: false,           // Auto-open on page load
-autoOpenDelay: 5000,       // Delay before auto-open (ms)
-showTimestamps: true,      // Show message timestamps
-showPulseAnimation: true,  // Attention-grabbing animation
+## Authentication Scenarios
+
+### A: Logged-In User
+- Pre-filled name, email, phone
+- Streamlined booking experience
+- "I can help you book using your account details"
+
+### B: Registered but Not Logged In
+- Detected via email/phone during booking
+- Prompted to log in for faster experience
+- "I notice you have an account. Would you like to log in?"
+
+### C: New Guest
+- Full information collection during booking
+- Account creation offered after booking
+
+### D: Returning Guest
+- Recognized via browser storage
+- Warm welcome back message
+
+## AI Function Calling
+
+The chatbot has access to these functions:
+
+### check_availability(date)
+Checks available appointment slots for a specific date.
+- Returns available time slots
+- Respects clinic hours (9-6 weekdays, 9-2 Saturday)
+- Excludes already booked slots
+
+### book_appointment(name, phone, email, date, time, serviceType)
+Books an appointment after user confirmation.
+- Creates appointment in database
+- Links to existing user if found
+- Sends confirmation emails
+
+### get_services(category)
+Retrieves service information with pricing.
+- Categories: preventive, cosmetic, surgical, orthodontic
+- Includes accurate pricing in PKR
+
+### detect_user_account(email, phone)
+Checks if contact info has an existing account.
+- Prompts login for existing users
+- Enables pre-filling of data
+
+## Rate Limiting
+
+- **Per User:** 10 messages/minute
+- **Per IP:** 100 messages/hour
+- **Fallback:** Graceful degradation with helpful error message
+
+## Testing
+
+### Test Message Endpoint
+```bash
+curl -X POST http://localhost:5000/api/chatbot/message \
+  -H "Content-Type: application/json" \
+  -d '{"sessionId": "test-123", "message": "What services do you offer?"}'
 ```
 
-## Knowledge Base
-
-### Services (`services` object)
-Each service includes:
-- `service` - Name of the service
-- `keywords` - Words that trigger this response
-- `description` - Brief explanation
-- `duration` - How long it takes
-- `cost` - Price range in PKR
-- `details` - Detailed explanation
-
-**Categories:**
-- `preventive` - Cleanings, exams, X-rays, fluoride, sealants
-- `restorative` - Fillings, crowns, bridges, root canals, dentures, implants
-- `cosmetic` - Whitening, veneers, bonding, smile makeover
-- `orthodontics` - Braces, Invisalign, retainers
-- `surgery` - Extractions, wisdom teeth
-
-### Emergency Responses (`emergencyResponses` object)
-- `severe_pain` - Immediate pain relief + call instructions
-- `knocked_out_tooth` - CRITICAL time-sensitive instructions
-- `broken_tooth` - First aid + scheduling
-- `severe_bleeding` - ER guidance if needed
-- `abscess_infection` - Warning signs + when to go to ER
-- `lost_filling_crown` - Temporary measures
-
-### FAQ Database (`faq` object)
-- `visit_frequency` - How often to visit
-- `insurance` - Accepted plans
-- `payment` - Payment options
-- `dental_anxiety` - Comfort options
-- `xray_safety` - Radiation concerns
-- `root_canal_pain` - Myth busting
-- `cleaning_vs_deep_cleaning` - Differences explained
-- `after_extraction` - Recovery guide
-- `veneer_lifespan` - Durability info
-- `whitening_results` - Expectations
-
-## Intent Patterns
-
-The chatbot uses regex patterns to understand user intent:
-
-```javascript
-export const intentPatterns = {
-  appointment: [
-    /\b(appointment|booking|schedule|book|reserve)\b/i,
-    /\b(visit|see\s*(the\s*)?(doctor|dentist))\b/i,
-  ],
-  emergency: [
-    /\b(emergency|urgent|hurry)\b/i,
-    /\b(severe|terrible)\s*(pain|ache|tooth)/i,
-  ],
-  // ... more intents
-}
+### Test with Authentication
+```bash
+curl -X POST http://localhost:5000/api/chatbot/message \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"sessionId": "test-123", "message": "Book an appointment for tomorrow"}'
 ```
-
-### Typo Handling
-
-The `normalizeText()` function corrects common typos:
-- `apointment` → `appointment`
-- `whitning` → `whitening`
-- `cleening` → `cleaning`
-- `emergancy` → `emergency`
-
-## Appointment Booking Flow
-
-Multi-step flow that collects:
-1. **Type** - What kind of appointment
-2. **Timing** - Preferred day/time
-3. **Contact** - Name, phone, email
-4. **Confirm** - Review and submit
-
-Users can say "cancel" at any time to exit the flow.
 
 ## Testing Scenarios
 
-Test these queries to verify functionality:
-
 | Query | Expected Response |
 |-------|-------------------|
-| "I need an appointment" | Starts booking flow |
-| "Tell me about teeth whitening" | Detailed whitening info with pricing |
-| "How much is a filling?" | Cost range + factors |
-| "I have severe tooth pain!" | Emergency response with call instructions |
-| "Do you take State Life insurance?" | Yes + list of accepted plans |
-| "I'm scared of dentists" | Anxiety comfort options |
-| "apointment for tomorow" (typos) | Still understands → booking flow |
+| "What services do you offer?" | Lists all dental services with categories |
+| "I need an appointment" | Asks about appointment type, then dates |
+| "What are your hours?" | Shows Mon-Fri 9-6, Sat 9-2, Sun closed |
+| "I have severe tooth pain!" | Emergency response with phone number |
+| "How much is teeth whitening?" | Rs. 8,000 - 15,000 with details |
+| "Book for tomorrow at 10 AM" | Checks availability, proceeds to booking |
 
-## Customization Guide
+## Fallback Behavior
 
-### Adding a New Service
+If Gemini API fails:
+1. Detects emergency keywords → Emergency response
+2. Detects appointment keywords → Booking link + phone
+3. Detects service keywords → General service info
+4. Default → Contact information with phone numbers
 
-1. Add to appropriate category in `services`:
+## Customization
+
+### Update Clinic Information
+Edit `backend/services/geminiService.js`:
 
 ```javascript
-{
-  service: 'New Treatment Name',
-  keywords: ['new treatment', 'treatment', 'keyword'],
-  description: 'Brief description here.',
-  duration: '30-60 minutes',
-  cost: 'Rs. 5,000 - 10,000',
-  details: 'Detailed explanation for patients...'
+const CLINIC_INFO = {
+  name: 'Your Clinic Name',
+  location: 'Your Address',
+  phone: '+92 XXX XXXXXXX',
+  // ...
 }
 ```
 
-### Adding a New FAQ
+### Update Services/Pricing
+Edit `SERVICES_INFO` in the same file.
 
-1. Add to `faq` object:
-
-```javascript
-new_question: {
-  keywords: ['keyword1', 'keyword2'],
-  answer: `Your detailed answer here with **bold** formatting.`,
-  followUp: true
-}
-```
-
-### Adding a New Intent
-
-1. Add pattern to `intentPatterns`:
-
-```javascript
-myNewIntent: [
-  /\b(keyword1|keyword2)\b/i,
-  /\bphrase to match\b/i
-]
-```
-
-2. Handle in `generateResponse()` switch statement:
-
-```javascript
-case 'myNewIntent':
-  return "Your response here"
-```
-
-## Conversation Context
-
-The chatbot maintains context in state:
-
-```javascript
-const [context, setContext] = useState({
-  lastIntent: null,          // What user asked about last
-  lastTopic: null,           // Specific topic discussed
-  appointmentFlow: {         // Booking progress
-    active: false,
-    step: null,
-    data: {}
-  },
-  messageCount: 0            // Messages in session
-})
-```
-
-This enables:
-- Follow-up question handling ("yes" after service info → start booking)
-- Continuing appointment flow across messages
-- Context-aware suggestions
-
-## Styling
-
-Uses Tailwind CSS with website's design tokens:
-- `luxury-gold` (#d4af37) - Primary accent
-- `luxury-black` (#0a0a0a) - Dark backgrounds
-- `luxury-cream` (#faf9f6) - Light backgrounds
-- `primary` (#2a9d8f) - User message bubbles
-- `font-serif` - Playfair Display for headings
+### Modify AI Behavior
+Edit the system prompt in `buildSystemPrompt()` function.
 
 ## Session Storage
 
-Data persisted during session:
-- `chatbot_messages` - Message history
-- `chatbot_context` - Conversation state
+**Frontend (localStorage):**
+- `chatbot_session_id` - Current session UUID
+- `chatbot_guest_id` - Guest identifier
 
-Cleared when:
-- Browser tab closes
-- User clicks clear button
-- `sessionStorage.clear()` called
-
-## Troubleshooting
-
-### Chatbot not responding
-- Check browser console for errors
-- Verify all imports in ChatbotWidget.jsx
-- Ensure ChatbotConfig.js has valid syntax
-
-### Wrong intent matched
-- Check intent priority (emergencies first)
-- Add more specific keywords
-- Test with `normalizeText()` output
-
-### Appointment flow stuck
-- User can say "cancel" to exit
-- Clear chat resets state
-- Check `context.appointmentFlow` state
-
-### Styling issues
-- Verify Tailwind config has luxury colors
-- Check for CSS conflicts
-- Ensure proper z-index (z-50)
-
-## Future Improvements
-
-- [ ] API integration for real appointment booking
-- [ ] Multi-language support (Urdu)
-- [ ] Voice input/output
-- [ ] Analytics tracking
-- [ ] Email transcript
-- [ ] Rich media responses (images/videos)
-- [ ] Machine learning-based intent matching
+**Backend (MongoDB):**
+- Chat sessions auto-expire after 2 hours of inactivity
+- Messages compressed for long conversations (>20 messages)
 
 ## Performance
 
-- No external AI API calls (runs client-side)
-- Lazy-loaded with main bundle
-- Smooth 60fps animations
-- Response time < 100ms
-- Session storage for persistence
+- **Response Time:** ~1-3 seconds (Gemini API)
+- **Fallback Time:** <100ms
+- **Session Persistence:** MongoDB with TTL indexes
+- **Rate Limit:** 10 req/min per user
+
+## Cost
+
+**Google Gemini API: FREE**
+- Free tier: 60 requests/minute, 1500 requests/day
+- No credit card required
+- Sufficient for ~9000 conversations/month
 
 ---
 
-Built for Dr. Ahmed Dental Care | Matches website design perfectly
+Built with Google Gemini AI for Dr. Ahmed Dental Care
