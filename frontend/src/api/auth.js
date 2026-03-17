@@ -13,5 +13,9 @@ export const authAPI = {
 
   resetPassword: (data) => client.post('/auth/reset-password', data),
 
-  getProfile: () => client.get('/auth/profile')
+  getProfile: () => client.get('/auth/profile'),
+
+  updateProfile: (data) => client.put('/auth/profile', data),
+
+  changePassword: (data) => client.put('/auth/change-password', data)
 }

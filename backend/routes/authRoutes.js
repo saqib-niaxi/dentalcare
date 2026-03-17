@@ -9,7 +9,9 @@ const {
   verifyEmail,
   resendOTP,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  updateProfile,
+  changePassword
 } = require('../controllers/authController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
@@ -34,6 +36,8 @@ router.post('/login', loginValidation, login);
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
 router.get('/profile', protect, getProfile);
+router.put('/profile', protect, updateProfile);
+router.put('/change-password', protect, changePassword);
 router.get('/patients', protect, admin, getPatients);
 router.get('/patients/:id', protect, admin, getPatientById);
 

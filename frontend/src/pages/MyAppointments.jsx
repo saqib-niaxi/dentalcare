@@ -1,21 +1,38 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useNotification } from '../context/NotificationContext'
 import { useAppointments } from '../hooks/useAppointments'
+import { useDoctors } from '../hooks/useDoctors'
+import { useServices } from '../hooks/useServices'
+import { appointmentsAPI } from '../api/appointments'
+import useTheme from '../hooks/useTheme'
 import { formatDate, formatTime } from '../utils/formatters'
 import StatusBadge from '../components/ui/StatusBadge'
+import AppointmentCard from '../components/ui/AppointmentCard'
 import { PageLoader } from '../components/ui/LoadingSpinner'
 import AnimatedSection, { AnimatedChildren } from '../components/animations/AnimatedSection'
 import { AnimatedHeading, GradientText } from '../components/ui/AnimatedText'
 import PremiumCard from '../components/ui/PremiumCard'
 import MagneticButton from '../components/ui/MagneticButton'
-import { CalendarDaysIcon, ClockIcon, DocumentTextIcon } from '@heroicons/react/24/solid'
+import Modal from '../components/ui/Modal'
+import { Select } from '../components/ui/Input'
+import { CalendarDaysIcon, ClockIcon, DocumentTextIcon, ArrowPathIcon } from '@heroicons/react/24/solid'
 
 export default function MyAppointments() {
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
+  const { success, error } = useNotification()
   const { appointments, loading, fetchMyAppointments } = useAppointments()
+  const { doctors, fetchDoctorsByService, fetchDoctorAvailability } = useDoctors()
+  const { services, fetchServices } = useServices()
+  const { isDark } = useTheme()
 
+  const [rescheduleModal, setRescheduleModal] = useState(false)
+  const [selectedAppointment, setSelectedAppointment] = useState(null)
+  const [rescheduleForm, setRescheduleForm] = useState({ service: '', doctor: '', date: '', time: '' })
+  const [availableSlots, setAvailableSlots] = useState([])
+  const [rescheduleLoading, setRescheduleLoading] = useState(false)
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/login', { state: { from: { pathname: '/my-appointments' } } })
@@ -23,6 +40,71 @@ export default function MyAppointments() {
     }
     fetchMyAppointments()
   }, [isAuthenticated, navigate, fetchMyAppointments])
+
+  // Fetch services when modal opens
+  useEffect(() => {
+    if (rescheduleModal) {
+      fetchServices()
+    }
+  }, [rescheduleModal, fetchServices])
+
+  // Fetch availability when doctor + date changes
+  useEffect(() => {
+    if (rescheduleForm.doctor && rescheduleForm.date) {
+      fetchDoctorAvailability(rescheduleForm.doctor, rescheduleForm.date)
+        .then(slots => setAvailableSlots(slots))
+        .catch(() => setAvailableSlots([]))
+    } else {
+      setAvailableSlots([])
+    }
+  }, [rescheduleForm.doctor, rescheduleForm.date])
+
+  const openReschedule = (appointment) => {
+    setSelectedAppointment(appointment)
+    setRescheduleForm({
+      service: appointment.service?._id || '',
+      doctor: appointment.doctor?._id || '',
+      date: '',
+      time: ''
+    })
+    setAvailableSlots([])
+    setRescheduleModal(true)
+    // Fetch doctors for the pre-selected service without resetting form
+    if (appointment.service?._id) {
+      fetchDoctorsByService(appointment.service._id)
+    }
+  }
+
+  const handleServiceChange = (e) => {
+    const serviceId = e.target.value
+    setRescheduleForm(prev => ({ ...prev, service: serviceId, doctor: '', date: '', time: '' }))
+    setAvailableSlots([])
+    if (serviceId) fetchDoctorsByService(serviceId)
+  }
+
+  const handleReschedule = async (e) => {
+    e.preventDefault()
+    if (!rescheduleForm.service || !rescheduleForm.doctor || !rescheduleForm.date || !rescheduleForm.time) {
+      error('Please fill in all fields')
+      return
+    }
+    setRescheduleLoading(true)
+    try {
+      await appointmentsAPI.reschedule(selectedAppointment._id, rescheduleForm)
+      success('Appointment rescheduled successfully')
+      setRescheduleModal(false)
+      fetchMyAppointments()
+    } catch (err) {
+      error(err.response?.data?.message || 'Failed to reschedule appointment')
+    } finally {
+      setRescheduleLoading(false)
+    }
+  }
+
+  // Get tomorrow's date as min date
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  const minDate = tomorrow.toISOString().split('T')[0]
 
   if (!isAuthenticated) {
     return <PageLoader />
@@ -32,7 +114,6 @@ export default function MyAppointments() {
     <div className="overflow-hidden">
       {/* Hero */}
       <section className="relative bg-gradient-to-br from-luxury-black via-luxury-charcoal to-luxury-slate text-white py-24 md:py-32">
-        {/* Background decorative elements */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-10 left-20 w-64 h-64 bg-luxury-gold/10 rounded-full blur-3xl" />
           <div className="absolute bottom-10 right-20 w-80 h-80 bg-primary/10 rounded-full blur-3xl" />
@@ -128,9 +209,19 @@ export default function MyAppointments() {
                         </div>
                       </div>
 
-                      {/* Status */}
-                      <div className="flex-shrink-0">
+                      {/* Status & Actions */}
+                      <div className="flex-shrink-0 flex flex-col items-end gap-2">
                         <StatusBadge status={appointment.status} />
+                        <AppointmentCard appointment={appointment} />
+                        {appointment.status === 'pending' && (
+                          <button
+                            onClick={() => openReschedule(appointment)}
+                            className="flex items-center gap-1.5 text-sm text-primary hover:text-luxury-gold transition-colors duration-200 font-medium"
+                          >
+                            <ArrowPathIcon className="w-4 h-4" />
+                            Reschedule
+                          </button>
+                        )}
                       </div>
                     </div>
                   </PremiumCard>
@@ -140,6 +231,73 @@ export default function MyAppointments() {
           )}
         </div>
       </section>
+
+      {/* Reschedule Modal */}
+      <Modal
+        isOpen={rescheduleModal}
+        onClose={() => setRescheduleModal(false)}
+        title="Reschedule Appointment"
+        size="md"
+        dark={isDark}
+      >
+        <form onSubmit={handleReschedule} className="space-y-1">
+          <Select
+            label="Service"
+            name="service"
+            value={rescheduleForm.service}
+            onChange={handleServiceChange}
+            options={services.map(s => ({ value: s._id, label: s.name }))}
+            placeholder="Select a service"
+            required
+          />
+          <Select
+            label="Doctor"
+            name="doctor"
+            value={rescheduleForm.doctor}
+            onChange={(e) => setRescheduleForm(prev => ({ ...prev, doctor: e.target.value, date: '', time: '' }))}
+            options={doctors.map(d => ({ value: d._id, label: `Dr. ${d.name} — ${d.specialization}` }))}
+            placeholder="Select a doctor"
+            disabled={!rescheduleForm.service}
+            required
+          />
+          <div className="mb-4">
+            <label className="block text-gray-700 dark:text-gray-200 font-medium mb-2">
+              Date <span className="text-red-500 ml-1">*</span>
+            </label>
+            <input
+              type="date"
+              min={minDate}
+              value={rescheduleForm.date}
+              onChange={(e) => setRescheduleForm(prev => ({ ...prev, date: e.target.value, time: '' }))}
+              disabled={!rescheduleForm.doctor}
+              required
+              className="input-field dark:bg-luxury-slate dark:border-white/15 dark:text-gray-100 disabled:bg-gray-100 dark:disabled:bg-luxury-black disabled:cursor-not-allowed"
+            />
+          </div>
+          <Select
+            label="Time Slot"
+            name="time"
+            value={rescheduleForm.time}
+            onChange={(e) => setRescheduleForm(prev => ({ ...prev, time: e.target.value }))}
+            options={availableSlots.map(slot => ({ value: slot, label: formatTime(slot) }))}
+            placeholder={availableSlots.length === 0 ? 'Select date first' : 'Select a time slot'}
+            disabled={!rescheduleForm.date || availableSlots.length === 0}
+            required
+          />
+          <div className="pt-2">
+            <MagneticButton
+              type="submit"
+              variant="luxury"
+              disabled={rescheduleLoading}
+              className="w-full"
+            >
+              {rescheduleLoading ? 'Rescheduling...' : 'Confirm Reschedule'}
+            </MagneticButton>
+          </div>
+        </form>
+      </Modal>
+
+
     </div>
   )
 }

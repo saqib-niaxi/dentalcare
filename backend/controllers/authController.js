@@ -60,7 +60,7 @@ exports.register = async (req, res) => {
     await sendOTPEmail(
       email,
       otp,
-      'Verify Your Email - Dr. Ahmed Dental Care',
+      'Verify Your Email - Dr. Hanif Niazi Dental Care',
       `Welcome ${name}! Please use the OTP below to verify your email address:`
     );
 
@@ -167,7 +167,7 @@ exports.resendOTP = async (req, res) => {
     await sendOTPEmail(
       email,
       otp,
-      'Verify Your Email - Dr. Ahmed Dental Care',
+      'Verify Your Email - Dr. Hanif Niazi Dental Care',
       `Here is your new verification OTP:`
     );
 
@@ -264,7 +264,7 @@ exports.forgotPassword = async (req, res) => {
     await sendOTPEmail(
       email,
       otp,
-      'Password Reset OTP - Dr. Ahmed Dental Care',
+      'Password Reset OTP - Dr. Hanif Niazi Dental Care',
       `You requested a password reset. Use the OTP below to reset your password:`
     );
 
@@ -358,6 +358,73 @@ exports.getPatients = async (req, res) => {
     res.json({
       success: true,
       patients
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// @desc    Update user profile
+// @route   PUT /api/auth/profile
+exports.updateProfile = async (req, res) => {
+  try {
+    const { name, phone } = req.body;
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { name, phone },
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    res.json({
+      success: true,
+      message: 'Profile updated successfully',
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// @desc    Change password
+// @route   PUT /api/auth/change-password
+exports.changePassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'New password must be at least 6 characters'
+      });
+    }
+
+    const user = await User.findById(req.user.id).select('+password');
+    const isMatch = await user.matchPassword(oldPassword);
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: 'Current password is incorrect'
+      });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Password changed successfully'
     });
   } catch (error) {
     res.status(500).json({

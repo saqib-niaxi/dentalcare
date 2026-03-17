@@ -3,12 +3,12 @@
 // ============================================
 
 export const chatbotConfig = {
-  clinicName: 'Dr. Ahmed Dental Care',
+  clinicName: 'Dr. Hanif Niazi Dental Care',
   botName: 'Sara',
   phone: '+92 320 2067666',
   emergencyPhone: '+92 300 6089947',
-  email: 'info@ahmeddental.com',
-  address: '123 Main Street, Gulshan-e-Iqbal, Karachi',
+  email: 'info@hanifniazidental.com',
+  address: 'Clinic No 1 PAF Road, Mianwali',
 
   officeHours: {
     monday: '9:00 AM - 6:00 PM',

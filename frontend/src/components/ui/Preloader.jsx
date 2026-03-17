@@ -52,7 +52,7 @@ export default function Preloader({ onComplete }) {
       {/* Logo */}
       <div className="preloader-logo mb-8">
         <h1 className="text-4xl md:text-5xl font-serif font-bold text-gradient-gold">
-          Dr. Ahmed
+          Dr. Hanif Niazi
         </h1>
         <p className="text-luxury-gold/60 text-center mt-2 tracking-widest text-sm">
           DENTAL CARE

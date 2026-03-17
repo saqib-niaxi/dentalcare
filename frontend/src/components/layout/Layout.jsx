@@ -5,6 +5,8 @@ import Preloader from '../ui/Preloader'
 import ScrollProgress from '../ui/ScrollProgress'
 import { BackToTop } from '../ui/ScrollProgress'
 import ChatbotWidget from '../chatbot/ChatbotWidget'
+import WhatsAppButton from '../ui/WhatsAppButton'
+import LiveChatWidget from '../chat/LiveChatWidget'
 import { useAnimation } from '../../context/AnimationContext'
 
 export default function Layout({ children }) {
@@ -27,7 +29,7 @@ export default function Layout({ children }) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-luxury-cream">
+    <div className="min-h-screen flex flex-col bg-luxury-cream dark:bg-luxury-black dark:text-gray-100">
       {/* Preloader - only on first load */}
       {showPreloader && isFirstLoad && !prefersReducedMotion && (
         <Preloader onComplete={handlePreloaderComplete} />
@@ -52,6 +54,12 @@ export default function Layout({ children }) {
 
       {/* Chatbot Widget */}
       <ChatbotWidget />
+
+      {/* Live Chat Widget */}
+      <LiveChatWidget />
+
+      {/* WhatsApp Button */}
+      <WhatsAppButton />
     </div>
   )
 }

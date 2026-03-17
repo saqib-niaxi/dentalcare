@@ -105,7 +105,7 @@ export default function Register() {
         <div className="relative z-10 flex flex-col justify-center items-center w-full p-12 text-center">
           <AnimatedSection animation="fadeUp">
             <h1 className="text-4xl md:text-5xl font-serif font-bold text-white mb-6">
-              Join <GradientText>Dr. Ahmed</GradientText> Dental
+              Join <GradientText>Dr. Hanif Niazi</GradientText> Dental
             </h1>
             <p className="text-white/70 text-lg max-w-md">
               Create your account to book appointments, track your dental health, and receive personalized care.
@@ -133,10 +133,10 @@ export default function Register() {
       </div>
 
       {/* Right Side - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center py-12 px-4 bg-luxury-cream">
+      <div className="w-full lg:w-1/2 flex items-center justify-center py-12 px-4 bg-luxury-cream dark:bg-luxury-charcoal">
         <div className="max-w-md w-full">
           <AnimatedSection animation="fadeUp">
-            <PremiumCard className="bg-white" glow>
+            <PremiumCard glow>
               {step === 1 ? (
                 <>
                   <div className="text-center mb-8">
@@ -213,7 +213,7 @@ export default function Register() {
                       <div className="w-full border-t border-gray-200" />
                     </div>
                     <div className="relative flex justify-center text-sm">
-                      <span className="px-4 bg-white text-gray-500">Already registered?</span>
+                      <span className="px-4 bg-white dark:bg-luxury-charcoal text-gray-500 dark:text-gray-400">Already registered?</span>
                     </div>
                   </div>
 

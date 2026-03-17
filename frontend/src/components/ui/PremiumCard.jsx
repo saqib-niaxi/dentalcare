@@ -102,9 +102,10 @@ export default function PremiumCard({
       ref={cardRef}
       className={`
         relative overflow-hidden rounded-2xl p-6
-        bg-white/80 backdrop-blur-xl
-        border border-white/30
-        shadow-lg
+        bg-white/90 dark:bg-luxury-charcoal/95 backdrop-blur-xl
+        border border-white/40 dark:border-white/10
+        shadow-lg dark:shadow-luxury
+        text-luxury-charcoal dark:text-gray-100
         transition-shadow duration-300
         ${isHovered ? 'shadow-2xl' : ''}
         ${float && !prefersReducedMotion ? 'animate-float' : ''}
