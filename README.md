@@ -1,4 +1,4 @@
-# Dr. Ahmed Dental Care - Full Stack Website
+# Dr. Hanif Dental Care - Full Stack Website
 
 A complete full-stack dental clinic website built with Node.js, Express, and MongoDB (MERN stack without React).
 
