@@ -6,6 +6,7 @@ import Layout from './components/layout/Layout'
 import Home from './pages/Home'
 import About from './pages/About'
 import Services from './pages/Services'
+import Doctors from './pages/Doctors'
 import Contact from './pages/Contact'
 
 // Auth Pages
@@ -16,6 +17,7 @@ import ForgotPassword from './pages/ForgotPassword'
 // Protected Pages
 import BookAppointment from './pages/BookAppointment'
 import MyAppointments from './pages/MyAppointments'
+import Profile from './pages/Profile'
 
 // Admin Pages
 import AdminPanel from './pages/admin/AdminPanel'
@@ -58,39 +60,75 @@ function AdminRoute({ children }) {
   return children
 }
 
+// Public/Patient Route Wrapper - redirects admin to admin panel
+function PublicRoute({ children }) {
+  const { isAdmin, loading } = useAuth()
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+      </div>
+    )
+  }
+
+  if (isAdmin) {
+    return <Navigate to="/admin" replace />
+  }
+
+  return children
+}
+
 export default function App() {
   return (
     <Routes>
-      {/* Public Routes with Layout */}
-      <Route path="/" element={<Layout><Home /></Layout>} />
-      <Route path="/about" element={<Layout><About /></Layout>} />
-      <Route path="/services" element={<Layout><Services /></Layout>} />
-      <Route path="/contact" element={<Layout><Contact /></Layout>} />
+      {/* Public Routes with Layout - admin gets redirected to /admin */}
+      <Route path="/" element={<PublicRoute><Layout><Home /></Layout></PublicRoute>} />
+      <Route path="/about" element={<PublicRoute><Layout><About /></Layout></PublicRoute>} />
+      <Route path="/services" element={<PublicRoute><Layout><Services /></Layout></PublicRoute>} />
+      <Route path="/doctors" element={<PublicRoute><Layout><Doctors /></Layout></PublicRoute>} />
+      <Route path="/contact" element={<PublicRoute><Layout><Contact /></Layout></PublicRoute>} />
 
-      {/* Auth Routes with Layout */}
-      <Route path="/login" element={<Layout><Login /></Layout>} />
-      <Route path="/register" element={<Layout><Register /></Layout>} />
-      <Route path="/forgot-password" element={<Layout><ForgotPassword /></Layout>} />
+      {/* Auth Routes with Layout - admin gets redirected to /admin */}
+      <Route path="/login" element={<PublicRoute><Layout><Login /></Layout></PublicRoute>} />
+      <Route path="/register" element={<PublicRoute><Layout><Register /></Layout></PublicRoute>} />
+      <Route path="/forgot-password" element={<PublicRoute><Layout><ForgotPassword /></Layout></PublicRoute>} />
 
       {/* Protected Patient Routes with Layout */}
       <Route
         path="/book-appointment"
         element={
-          <Layout>
-            <ProtectedRoute>
-              <BookAppointment />
-            </ProtectedRoute>
-          </Layout>
+          <PublicRoute>
+            <Layout>
+              <ProtectedRoute>
+                <BookAppointment />
+              </ProtectedRoute>
+            </Layout>
+          </PublicRoute>
         }
       />
       <Route
         path="/my-appointments"
         element={
-          <Layout>
-            <ProtectedRoute>
-              <MyAppointments />
-            </ProtectedRoute>
-          </Layout>
+          <PublicRoute>
+            <Layout>
+              <ProtectedRoute>
+                <MyAppointments />
+              </ProtectedRoute>
+            </Layout>
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <PublicRoute>
+            <Layout>
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            </Layout>
+          </PublicRoute>
         }
       />
 

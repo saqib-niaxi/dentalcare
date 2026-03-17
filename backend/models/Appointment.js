@@ -20,6 +20,11 @@ const appointmentSchema = new mongoose.Schema({
   serviceType: {
     type: String // For chatbot bookings: "Routine Cleaning", "Emergency", etc.
   },
+  doctor: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Doctor',
+    required: true
+  },
   date: {
     type: Date,
     required: [true, 'Date is required']
@@ -38,7 +43,7 @@ const appointmentSchema = new mongoose.Schema({
   },
   source: {
     type: String,
-    enum: ['website', 'chatbot', 'phone', 'walk-in'],
+    enum: ['website', 'chatbot', 'chatbot-ai', 'phone', 'walk-in'],
     default: 'website'
   }
 }, {

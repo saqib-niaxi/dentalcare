@@ -32,7 +32,7 @@ export default function Home() {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <AnimatedSection animation="fadeUp" delay={0.2}>
-                <p className="text-luxury-gold tracking-widest text-sm mb-4 uppercase">Welcome to Dr. Ahmed Dental Care</p>
+                <p className="text-luxury-gold tracking-widest text-sm mb-4 uppercase">Welcome to Dr. Hanif Niazi Dental Care</p>
               </AnimatedSection>
 
               <AnimatedSection animation="fadeUp" delay={0.3}>
@@ -139,7 +139,7 @@ export default function Home() {
             className="grid grid-cols-1 md:grid-cols-3 gap-8"
           >
             {[
-              { icon: UserIcon, title: 'Experienced Doctor', desc: 'Dr. Ahmed has over 15 years of experience in providing quality dental care.', color: 'text-luxury-gold' },
+              { icon: UserIcon, title: 'Experienced Doctor', desc: 'Dr. Hanif Niazi has over 15 years of experience in providing quality dental care.', color: 'text-luxury-gold' },
               { icon: BuildingOfficeIcon, title: 'Modern Equipment', desc: 'State-of-the-art technology for accurate diagnosis and comfortable treatment.', color: 'text-blue-400' },
               { icon: CurrencyDollarIcon, title: 'Affordable Prices', desc: 'Quality dental care at competitive prices with flexible payment options.', color: 'text-green-400' }
             ].map((feature, index) => (
@@ -172,7 +172,7 @@ export default function Home() {
             className="grid grid-cols-1 md:grid-cols-2 gap-8"
           >
             {[
-              { quote: "Dr. Ahmed is amazing! He made me feel comfortable and the procedure was painless. Highly recommended!", author: 'Sarah Khan', role: 'Patient' },
+              { quote: "Dr. Hanif Niazi is amazing! He made me feel comfortable and the procedure was painless. Highly recommended!", author: 'Sarah Khan', role: 'Patient' },
               { quote: "Professional service, friendly staff, and great results. My family has been coming here for years!", author: 'Mohammad Ali', role: 'Patient' }
             ].map((testimonial, index) => (
               <PremiumCard key={index} className="bg-white" glow>
@@ -239,9 +239,9 @@ export default function Home() {
             className="grid grid-cols-1 md:grid-cols-3 gap-8"
           >
             {[
-              { icon: MapPinIcon, title: 'Address', lines: ['123 Main Street, Gulshan-e-Iqbal, Karachi'], color: 'text-primary bg-primary/10' },
+              { icon: MapPinIcon, title: 'Address', lines: ['Clinic No 1 PAF Road, Mianwali'], color: 'text-primary bg-primary/10' },
               { icon: PhoneIcon, title: 'Phone', lines: ['+92 320 2067666', 'Emergency: +92 300 6089947'], color: 'text-green-500 bg-green-50' },
-              { icon: EnvelopeIcon, title: 'Email', lines: ['info@ahmeddental.com'], color: 'text-red-500 bg-red-50' }
+              { icon: EnvelopeIcon, title: 'Email', lines: ['info@hanifniazidental.com'], color: 'text-red-500 bg-red-50' }
             ].map((contact, index) => (
               <PremiumCard key={index} className="text-center bg-white" glow>
                 <div className={`p-3 rounded-full ${contact.color} inline-flex mb-4`}>

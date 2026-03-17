@@ -30,7 +30,7 @@ export default function About() {
           </AnimatedHeading>
           <AnimatedSection animation="fadeUp" delay={0.3}>
             <p className="text-lg text-white/80 max-w-2xl mx-auto">
-              Learn more about Dr. Ahmed Dental Care and our commitment to your oral health.
+              Learn more about Dr. Hanif Niazi Dental Care and our commitment to your oral health.
             </p>
           </AnimatedSection>
         </div>
@@ -45,7 +45,7 @@ export default function About() {
                 <div className="absolute inset-0 bg-gradient-to-br from-luxury-gold/20 to-primary/20 rounded-2xl transform -rotate-3" />
                 <img
                   src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=600&auto=format&fit=crop&q=60"
-                  alt="Dr. Ahmed"
+                  alt="Dr. Hanif Niazi"
                   className="relative rounded-2xl shadow-luxury w-full"
                 />
               </div>
@@ -56,16 +56,16 @@ export default function About() {
                 <p className="text-luxury-gold tracking-widest text-sm mb-4 uppercase">Meet Our Expert</p>
               </AnimatedSection>
               <AnimatedHeading level={2} className="text-3xl md:text-4xl text-luxury-black mb-6">
-                Dr. Ahmed
+                Dr. Hanif Niazi
               </AnimatedHeading>
               <AnimatedSection animation="fadeUp" delay={0.2}>
                 <p className="text-gray-600 mb-4 leading-relaxed">
-                  Dr. Ahmed is a highly qualified dental surgeon with over 15 years of experience in the field. He graduated from Dow University of Health Sciences and has been serving the community with dedication and excellence.
+                  Dr. Hanif Niazi is a highly qualified dental surgeon with over 15 years of experience in the field. He has been serving the community with dedication and excellence.
                 </p>
               </AnimatedSection>
               <AnimatedSection animation="fadeUp" delay={0.3}>
                 <p className="text-gray-600 mb-6 leading-relaxed">
-                  With advanced training in cosmetic dentistry, oral surgery, and endodontics, Dr. Ahmed provides comprehensive dental care using the latest techniques and technologies.
+                  With advanced training in cosmetic dentistry, oral surgery, and endodontics, Dr. Hanif Niazi provides comprehensive dental care using the latest techniques and technologies.
                 </p>
               </AnimatedSection>
 

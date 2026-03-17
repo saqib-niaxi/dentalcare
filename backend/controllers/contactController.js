@@ -34,7 +34,7 @@ exports.sendContactMessage = async (req, res) => {
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #0077b6; margin: 0;">Dr. Ahmed Dental Care</h1>
+            <h1 style="color: #0077b6; margin: 0;">Dr. Hanif Niazi Dental Care</h1>
             <p style="color: #666;">New Contact Form Submission</p>
           </div>
 
@@ -77,11 +77,11 @@ exports.sendContactMessage = async (req, res) => {
     const confirmationEmail = {
       from: process.env.EMAIL_USER,
       to: email,
-      subject: 'We Received Your Message - Dr. Ahmed Dental Care',
+      subject: 'We Received Your Message - Dr. Hanif Niazi Dental Care',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #0077b6; margin: 0;">Dr. Ahmed Dental Care</h1>
+            <h1 style="color: #0077b6; margin: 0;">Dr. Hanif Niazi Dental Care</h1>
             <p style="color: #666;">Your Trusted Dental Partner</p>
           </div>
 
@@ -111,10 +111,10 @@ exports.sendContactMessage = async (req, res) => {
 
           <p>We appreciate your inquiry and look forward to serving you!</p>
 
-          <p>Best regards,<br><strong>Dr. Ahmed Dental Care Team</strong></p>
+          <p>Best regards,<br><strong>Dr. Hanif Niazi Dental Care Team</strong></p>
 
           <div style="border-top: 1px solid #e9ecef; margin-top: 30px; padding-top: 20px; text-align: center; color: #666; font-size: 0.9rem;">
-            <p>📍 123 Main Street, Gulshan-e-Iqbal, Karachi</p>
+            <p>📍 Clinic No 1 PAF Road, Mianwali</p>
             <p>This is an automated email. Please do not reply to this message.</p>
           </div>
         </div>
@@ -342,7 +342,7 @@ exports.submitChatbotAppointment = async (req, res) => {
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #0077b6; margin: 0;">Dr. Ahmed Dental Care</h1>
+            <h1 style="color: #0077b6; margin: 0;">Dr. Hanif Niazi Dental Care</h1>
             <p style="color: #666;">New Appointment Request via Chatbot</p>
           </div>
 
@@ -421,12 +421,12 @@ exports.submitChatbotAppointment = async (req, res) => {
         from: process.env.EMAIL_USER,
         to: email,
         subject: isNewPatient
-          ? 'Welcome! Your Account & Appointment Request - Dr. Ahmed Dental Care'
-          : 'Appointment Request Received - Dr. Ahmed Dental Care',
+          ? 'Welcome! Your Account & Appointment Request - Dr. Hanif Niazi Dental Care'
+          : 'Appointment Request Received - Dr. Hanif Niazi Dental Care',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #0077b6; margin: 0;">Dr. Ahmed Dental Care</h1>
+              <h1 style="color: #0077b6; margin: 0;">Dr. Hanif Niazi Dental Care</h1>
               <p style="color: #666;">Your Trusted Dental Partner</p>
             </div>
 
@@ -472,10 +472,10 @@ exports.submitChatbotAppointment = async (req, res) => {
 
             <p>We look forward to seeing you!</p>
 
-            <p>Best regards,<br><strong>Dr. Ahmed Dental Care Team</strong></p>
+            <p>Best regards,<br><strong>Dr. Hanif Niazi Dental Care Team</strong></p>
 
             <div style="border-top: 1px solid #e9ecef; margin-top: 30px; padding-top: 20px; text-align: center; color: #666; font-size: 0.9rem;">
-              <p>📍 123 Main Street, Gulshan-e-Iqbal, Karachi</p>
+              <p>📍 Clinic No 1 PAF Road, Mianwali</p>
               <p>This is an automated email. Please do not reply to this message.</p>
             </div>
           </div>

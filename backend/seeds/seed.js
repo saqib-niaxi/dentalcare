@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Service = require('../models/Service');
 const User = require('../models/User');
 const connectDB = require('../config/database');
+const seedDoctors = require('./seedDoctors');
 require('dotenv').config();
 
 const seedData = async () => {
@@ -85,7 +86,7 @@ const seedData = async () => {
       console.log('Creating admin user...');
 
       const adminUser = new User({
-        name: 'Dr. Ahmed Khan',
+        name: 'Dr. Hanif Niazi Khan',
         email: 'admin@ahmeddental.com',
         password: 'admin123',
         phone: '+92 301 2345678',
@@ -100,6 +101,9 @@ const seedData = async () => {
     } else {
       console.log('✅ Admin user already exists, skipping...');
     }
+
+    // Seed doctors
+    await seedDoctors();
 
     console.log('\n🎉 Database seeding completed successfully!');
     console.log('\n💡 To test the application:');

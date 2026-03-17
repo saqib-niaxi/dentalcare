@@ -14,7 +14,8 @@ import {
   UserIcon,
   EnvelopeIcon,
   PhoneIcon,
-  DocumentTextIcon
+  DocumentTextIcon,
+  ChatBubbleLeftRightIcon
 } from '@heroicons/react/24/outline'
 
 const StatusBadge = ({ status }) => {
@@ -167,6 +168,17 @@ export default function AppointmentsTab({ appointments, onRefresh }) {
                   </p>
                 </div>
 
+                {/* Doctor */}
+                <div className="lg:w-40">
+                  <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Doctor</p>
+                  <p className="text-white font-medium truncate">
+                    Dr. {appointment.doctor?.name || 'N/A'}
+                  </p>
+                  {appointment.doctor?.specialization && (
+                    <p className="text-xs text-slate-400 truncate">{appointment.doctor.specialization}</p>
+                  )}
+                </div>
+
                 {/* Date & Time */}
                 <div className="lg:w-40">
                   <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Schedule</p>
@@ -187,6 +199,13 @@ export default function AppointmentsTab({ appointments, onRefresh }) {
 
                 {/* Actions */}
                 <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setSelectedAppointment(appointment)}
+                    className="p-2 text-amber-400 hover:text-amber-300 hover:bg-amber-500/20 rounded-lg transition-all"
+                    title="View Details & Messages"
+                  >
+                    <ChatBubbleLeftRightIcon className="w-5 h-5" />
+                  </button>
                   {appointment.status === 'pending' && (
                     <button
                       onClick={() => handleStatusUpdate(appointment._id, 'approved')}
@@ -247,6 +266,13 @@ export default function AppointmentsTab({ appointments, onRefresh }) {
               <div className="bg-slate-700/30 rounded-xl p-4 border border-white/5">
                 <p className="text-slate-400 text-xs uppercase tracking-wider mb-2">Service</p>
                 <p className="text-white font-medium">{selectedAppointment.service?.name || 'General Consultation'}</p>
+              </div>
+              <div className="bg-slate-700/30 rounded-xl p-4 border border-white/5">
+                <p className="text-slate-400 text-xs uppercase tracking-wider mb-2">Doctor</p>
+                <p className="text-white font-medium">Dr. {selectedAppointment.doctor?.name || 'N/A'}</p>
+                {selectedAppointment.doctor?.specialization && (
+                  <p className="text-xs text-slate-400 mt-1">{selectedAppointment.doctor.specialization}</p>
+                )}
               </div>
               <div className="bg-slate-700/30 rounded-xl p-4 border border-white/5">
                 <p className="text-slate-400 text-xs uppercase tracking-wider mb-2">Status</p>
@@ -314,6 +340,8 @@ export default function AppointmentsTab({ appointments, onRefresh }) {
                 Delete
               </button>
             </div>
+
+
           </div>
         )}
       </Modal>

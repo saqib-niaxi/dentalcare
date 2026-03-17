@@ -24,7 +24,7 @@ const sendOTPEmail = async (email, otp, subject, message) => {
       subject: subject,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #0077b6;">Dr. Ahmed Dental Care</h2>
+          <h2 style="color: #0077b6;">Dr. Hanif Niazi Dental Care</h2>
           <p>${message}</p>
           <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; text-align: center;">
             <h1 style="color: #0077b6; font-size: 3rem;">${otp}</h1>
@@ -56,11 +56,11 @@ const sendAppointmentApprovalEmail = async (email, patientName, serviceName, dat
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
-      subject: 'Appointment Approved - Dr. Ahmed Dental Care',
+      subject: 'Appointment Approved - Dr. Hanif Niazi Dental Care',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #0077b6; margin: 0;">Dr. Ahmed Dental Care</h1>
+            <h1 style="color: #0077b6; margin: 0;">Dr. Hanif Niazi Dental Care</h1>
             <p style="color: #666;">Your Trusted Dental Partner</p>
           </div>
 
@@ -100,7 +100,7 @@ const sendAppointmentApprovalEmail = async (email, patientName, serviceName, dat
 
           <div style="margin: 20px 0;">
             <h3 style="color: #0077b6;">Clinic Location:</h3>
-            <p>📍 123 Main Street, Gulshan-e-Iqbal, Karachi</p>
+            <p>📍 Clinic No 1 PAF Road, Mianwali</p>
             <p>📞 Phone: +92 301 2345678</p>
           </div>
 
@@ -108,7 +108,7 @@ const sendAppointmentApprovalEmail = async (email, patientName, serviceName, dat
 
           <p>We look forward to seeing you!</p>
 
-          <p>Best regards,<br><strong>Dr. Ahmed Dental Care Team</strong></p>
+          <p>Best regards,<br><strong>Dr. Hanif Niazi Dental Care Team</strong></p>
 
           <div style="border-top: 1px solid #e9ecef; margin-top: 30px; padding-top: 20px; text-align: center; color: #666; font-size: 0.9rem;">
             <p>This is an automated email. Please do not reply to this message.</p>
@@ -139,11 +139,11 @@ const sendAppointmentCancellationEmail = async (email, patientName, serviceName,
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
-      subject: 'Appointment Cancelled - Dr. Ahmed Dental Care',
+      subject: 'Appointment Cancelled - Dr. Hanif Niazi Dental Care',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #0077b6; margin: 0;">Dr. Ahmed Dental Care</h1>
+            <h1 style="color: #0077b6; margin: 0;">Dr. Hanif Niazi Dental Care</h1>
             <p style="color: #666;">Your Trusted Dental Partner</p>
           </div>
 
@@ -177,15 +177,15 @@ const sendAppointmentCancellationEmail = async (email, patientName, serviceName,
             <p style="margin: 10px 0 0 0;">Please contact us to book a new appointment:</p>
             <p style="margin: 5px 0;"><strong>Phone:</strong> +92 301 2345678</p>
             <p style="margin: 5px 0;"><strong>Emergency:</strong> +92 300 1234567</p>
-            <p style="margin: 5px 0;"><strong>Email:</strong> info@ahmeddental.com</p>
+            <p style="margin: 5px 0;"><strong>Email:</strong> info@hanifniazidental.com</p>
           </div>
 
           <p>We apologize for any inconvenience caused. We look forward to serving you soon.</p>
 
-          <p>Best regards,<br><strong>Dr. Ahmed Dental Care Team</strong></p>
+          <p>Best regards,<br><strong>Dr. Hanif Niazi Dental Care Team</strong></p>
 
           <div style="border-top: 1px solid #e9ecef; margin-top: 30px; padding-top: 20px; text-align: center; color: #666; font-size: 0.9rem;">
-            <p>📍 123 Main Street, Gulshan-e-Iqbal, Karachi</p>
+            <p>📍 Clinic No 1 PAF Road, Mianwali</p>
             <p>This is an automated email. Please do not reply to this message.</p>
           </div>
         </div>
@@ -214,11 +214,11 @@ const sendPendingAppointmentReminder = async (email, patientName, serviceName, d
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
-      subject: 'Appointment Status Update - Dr. Ahmed Dental Care',
+      subject: 'Appointment Status Update - Dr. Hanif Niazi Dental Care',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #0077b6; margin: 0;">Dr. Ahmed Dental Care</h1>
+            <h1 style="color: #0077b6; margin: 0;">Dr. Hanif Niazi Dental Care</h1>
             <p style="color: #666;">Your Trusted Dental Partner</p>
           </div>
 
@@ -251,15 +251,15 @@ const sendPendingAppointmentReminder = async (email, patientName, serviceName, d
             <strong>📞 Next Steps:</strong>
             <p style="margin: 10px 0 0 0;">Please contact us directly if you have any questions or concerns:</p>
             <p style="margin: 5px 0;"><strong>Phone:</strong> +92 301 2345678</p>
-            <p style="margin: 5px 0;"><strong>Email:</strong> info@ahmeddental.com</p>
+            <p style="margin: 5px 0;"><strong>Email:</strong> info@hanifniazidental.com</p>
           </div>
 
-          <p>We will confirm your appointment soon. Thank you for choosing Dr. Ahmed Dental Care!</p>
+          <p>We will confirm your appointment soon. Thank you for choosing Dr. Hanif Niazi Dental Care!</p>
 
-          <p>Best regards,<br><strong>Dr. Ahmed Dental Care Team</strong></p>
+          <p>Best regards,<br><strong>Dr. Hanif Niazi Dental Care Team</strong></p>
 
           <div style="border-top: 1px solid #e9ecef; margin-top: 30px; padding-top: 20px; text-align: center; color: #666; font-size: 0.9rem;">
-            <p>📍 123 Main Street, Gulshan-e-Iqbal, Karachi</p>
+            <p>📍 Clinic No 1 PAF Road, Mianwali</p>
             <p>This is an automated email. Please do not reply to this message.</p>
           </div>
         </div>
@@ -275,4 +275,83 @@ const sendPendingAppointmentReminder = async (email, patientName, serviceName, d
   }
 };
 
-module.exports = { sendOTPEmail, generateOTP, sendAppointmentApprovalEmail, sendAppointmentCancellationEmail, sendPendingAppointmentReminder };
+// Send 24-hour appointment reminder email (for approved appointments)
+const sendAppointmentReminderEmail = async (email, patientName, serviceName, date, time) => {
+  try {
+    const formattedDate = new Date(date).toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Appointment Reminder - Dr. Hanif Niazi Dental Care',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #0077b6; margin: 0;">Dr. Hanif Niazi Dental Care</h1>
+            <p style="color: #666;">Your Trusted Dental Partner</p>
+          </div>
+
+          <div style="background: #e7f3ff; border: 1px solid #b6d4fe; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 20px;">
+            <h2 style="color: #0057b7; margin: 0;">⏰ Appointment Tomorrow!</h2>
+          </div>
+
+          <p>Dear <strong>${patientName}</strong>,</p>
+
+          <p>This is a friendly reminder that you have a dental appointment scheduled for <strong>tomorrow</strong>.</p>
+
+          <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0;">
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="padding: 10px 0; border-bottom: 1px solid #e9ecef;"><strong>Service:</strong></td>
+                <td style="padding: 10px 0; border-bottom: 1px solid #e9ecef;">${serviceName}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px 0; border-bottom: 1px solid #e9ecef;"><strong>Date:</strong></td>
+                <td style="padding: 10px 0; border-bottom: 1px solid #e9ecef;">${formattedDate}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px 0;"><strong>Time:</strong></td>
+                <td style="padding: 10px 0;">${time}</td>
+              </tr>
+            </table>
+          </div>
+
+          <div style="background: #fff3cd; border: 1px solid #ffc107; padding: 15px; border-radius: 10px; margin: 20px 0;">
+            <strong>⏰ Please arrive 10-15 minutes early</strong>
+            <p style="margin: 5px 0 0 0; font-size: 0.9rem;">This allows time for check-in and any necessary paperwork.</p>
+          </div>
+
+          <div style="margin: 20px 0;">
+            <h3 style="color: #0077b6;">Clinic Location:</h3>
+            <p>📍 Clinic No 1 PAF Road, Mianwali</p>
+            <p>📞 Phone: +92 301 2345678</p>
+          </div>
+
+          <p>If you need to reschedule or cancel, please contact us as soon as possible.</p>
+
+          <p>We look forward to seeing you tomorrow!</p>
+
+          <p>Best regards,<br><strong>Dr. Hanif Niazi Dental Care Team</strong></p>
+
+          <div style="border-top: 1px solid #e9ecef; margin-top: 30px; padding-top: 20px; text-align: center; color: #666; font-size: 0.9rem;">
+            <p>This is an automated email. Please do not reply to this message.</p>
+          </div>
+        </div>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log('24-hour reminder email sent to:', email);
+    return true;
+  } catch (error) {
+    console.error('24-hour reminder email error:', error);
+    return false;
+  }
+};
+
+module.exports = { sendOTPEmail, generateOTP, sendAppointmentApprovalEmail, sendAppointmentCancellationEmail, sendPendingAppointmentReminder, sendAppointmentReminderEmail };

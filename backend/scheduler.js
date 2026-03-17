@@ -1,6 +1,6 @@
 const cron = require('node-cron');
 const Appointment = require('./models/Appointment');
-const { sendPendingAppointmentReminder, sendAppointmentCancellationEmail } = require('./utils/email');
+const { sendPendingAppointmentReminder, sendAppointmentCancellationEmail, sendAppointmentReminderEmail } = require('./utils/email');
 
 // Store sent reminders to avoid duplicates
 const sentReminders = new Set();
@@ -67,6 +67,39 @@ const startScheduler = () => {
               console.log(`Auto-cancelled appointment ${appointment._id} - doctor did not approve`);
             } catch (error) {
               console.error(`Error auto-cancelling appointment ${appointment._id}:`, error);
+            }
+          }
+        }
+      }
+      // 24-hour reminder for approved appointments
+      const approvedAppointments = await Appointment.find({ status: 'approved' })
+        .populate('patient', 'name email')
+        .populate('service', 'name');
+
+      for (const appointment of approvedAppointments) {
+        if (!appointment.patient?.email || !appointment.service) continue;
+
+        const dateStr2 = new Date(appointment.date).toISOString().split('T')[0];
+        const appointmentTime2 = new Date(`${dateStr2}T${appointment.time}:00`);
+        const timeUntil2 = appointmentTime2 - now;
+        const minutesUntil2 = Math.floor(timeUntil2 / (1000 * 60));
+
+        // Send reminder in 23-25 hour window before appointment
+        if (minutesUntil2 >= 1380 && minutesUntil2 <= 1500) {
+          const reminderId = `${appointment._id}-24hour`;
+          if (!sentReminders.has(reminderId)) {
+            try {
+              await sendAppointmentReminderEmail(
+                appointment.patient.email,
+                appointment.patient.name,
+                appointment.service.name,
+                appointment.date,
+                appointment.time
+              );
+              sentReminders.add(reminderId);
+              console.log(`Sent 24-hour reminder for appointment ${appointment._id}`);
+            } catch (emailError) {
+              console.error(`Failed to send 24-hour reminder for appointment ${appointment._id}:`, emailError);
             }
           }
         }

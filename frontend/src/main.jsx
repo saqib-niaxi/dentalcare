@@ -1,3 +1,11 @@
+// Initialize dark mode early to prevent flash
+;(() => {
+  const theme = localStorage.getItem('theme')
+  if (theme === 'dark') {
+    document.documentElement.classList.add('dark')
+  }
+})()
+
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
@@ -7,6 +15,7 @@ import App from './App'
 import { AuthProvider } from './context/AuthContext'
 import { NotificationProvider } from './context/NotificationContext'
 import { AnimationProvider } from './context/AnimationContext'
+import { SocketProvider } from './context/SocketContext'
 import './index.css'
 
 // Register GSAP plugins
@@ -48,9 +57,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <BrowserRouter>
       <NotificationProvider>
         <AuthProvider>
-          <AnimationProvider>
-            <App />
-          </AnimationProvider>
+          <SocketProvider>
+            <AnimationProvider>
+              <App />
+            </AnimationProvider>
+          </SocketProvider>
         </AuthProvider>
       </NotificationProvider>
     </BrowserRouter>

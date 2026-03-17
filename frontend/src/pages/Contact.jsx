@@ -102,7 +102,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-luxury-black">Address</h3>
-                    <p className="text-gray-600">123 Main Street, Gulshan-e-Iqbal, Karachi</p>
+                    <p className="text-gray-600">Clinic No 1 PAF Road, Mianwali</p>
                   </div>
                 </div>
 
@@ -123,7 +123,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-luxury-black">Email</h3>
-                    <p className="text-gray-600">info@ahmeddental.com</p>
+                    <p className="text-gray-600">info@hanifniazidental.com</p>
                   </div>
                 </div>
 
@@ -154,7 +154,7 @@ export default function Contact() {
 
             {/* Contact Form */}
             <AnimatedSection animation="fadeLeft" delay={0.2}>
-              <PremiumCard className="bg-white" glow>
+              <PremiumCard glow>
                 <h2 className="text-2xl font-bold text-luxury-black mb-6">Send Us a Message</h2>
 
                 <form onSubmit={handleSubmit}>
