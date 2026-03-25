@@ -154,7 +154,6 @@ const doctorSchema = new mongoose.Schema({
 });
 
 // Index for faster queries
-doctorSchema.index({ email: 1 });
 doctorSchema.index({ isActive: 1 });
 doctorSchema.index({ services: 1 });
 

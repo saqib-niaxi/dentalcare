@@ -5,8 +5,8 @@ import Preloader from '../ui/Preloader'
 import ScrollProgress from '../ui/ScrollProgress'
 import { BackToTop } from '../ui/ScrollProgress'
 import ChatbotWidget from '../chatbot/ChatbotWidget'
-import WhatsAppButton from '../ui/WhatsAppButton'
 import LiveChatWidget from '../chat/LiveChatWidget'
+import WhatsAppButton from '../ui/WhatsAppButton'
 import { useAnimation } from '../../context/AnimationContext'
 
 export default function Layout({ children }) {
