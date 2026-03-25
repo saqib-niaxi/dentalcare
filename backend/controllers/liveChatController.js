@@ -160,4 +160,89 @@ const deleteConversation = async (req, res) => {
   }
 };
 
-module.exports = { getConversations, getConversation, createConversation, closeConversation, getTotalUnread, deleteConversation };
+// POST /api/live-chat/conversations/:id/messages
+const sendMessage = async (req, res) => {
+  try {
+    const { content } = req.body;
+    if (!content?.trim()) {
+      return res.status(400).json({ message: 'Message content is required' });
+    }
+
+    const conversation = await Conversation.findById(req.params.id);
+    if (!conversation) return res.status(404).json({ message: 'Conversation not found' });
+
+    if (req.user.role !== 'admin' && conversation.patient.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    if (conversation.status === 'closed') {
+      return res.status(400).json({ message: 'Conversation is closed' });
+    }
+
+    const senderRole = req.user.role === 'admin' ? 'admin' : 'patient';
+    const message = await Message.create({
+      type: 'live',
+      conversation: req.params.id,
+      sender: req.user._id,
+      senderRole,
+      content: content.trim()
+    });
+    await message.populate('sender', 'name');
+
+    res.status(201).json({ success: true, message });
+  } catch (error) {
+    console.error('Error sending message:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// GET /api/live-chat/conversations/:id/messages?since=<timestamp>
+const getMessages = async (req, res) => {
+  try {
+    const conversation = await Conversation.findById(req.params.id);
+    if (!conversation) return res.status(404).json({ message: 'Conversation not found' });
+
+    if (req.user.role !== 'admin' && conversation.patient.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    let query = { conversation: req.params.id, type: 'live' };
+    if (req.query.since) {
+      query.createdAt = { $gt: new Date(req.query.since) };
+    }
+
+    const messages = await Message.find(query)
+      .sort({ createdAt: 1 })
+      .populate('sender', 'name');
+
+    res.json({ success: true, messages });
+  } catch (error) {
+    console.error('Error fetching messages:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// PUT /api/live-chat/conversations/:id/read
+const markRead = async (req, res) => {
+  try {
+    const conversation = await Conversation.findById(req.params.id);
+    if (!conversation) return res.status(404).json({ message: 'Conversation not found' });
+
+    if (req.user.role !== 'admin' && conversation.patient.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    const otherRole = req.user.role === 'admin' ? 'patient' : 'admin';
+    await Message.updateMany(
+      { conversation: req.params.id, type: 'live', senderRole: otherRole, isRead: false },
+      { isRead: true }
+    );
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error marking read:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+module.exports = { getConversations, getConversation, createConversation, closeConversation, getTotalUnread, deleteConversation, sendMessage, getMessages, markRead };

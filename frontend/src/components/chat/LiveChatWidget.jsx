@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../context/AuthContext'
-import { useSocket } from '../../context/SocketContext'
 import { liveChatAPI } from '../../api/liveChat'
 import {
   ChatBubbleLeftRightIcon,
@@ -9,33 +8,81 @@ import {
   MinusIcon
 } from '@heroicons/react/24/solid'
 
+const POLL_INTERVAL = 3000      // 3s when chat is open
+const UNREAD_POLL_INTERVAL = 10000 // 10s for unread badge
+
 export default function LiveChatWidget() {
   const { isAuthenticated, isAdmin } = useAuth()
-  const { socket, isConnected } = useSocket()
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState([])
   const [newMessage, setNewMessage] = useState('')
   const [conversation, setConversation] = useState(null)
   const [loading, setLoading] = useState(false)
   const [sending, setSending] = useState(false)
-  const [typing, setTyping] = useState(null)
   const [closed, setClosed] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
   const messagesEndRef = useRef(null)
-  const typingTimeoutRef = useRef(null)
-  const inputRef = useRef(null)
   const isOpenRef = useRef(false)
+  const conversationRef = useRef(null)
+  const lastTimestampRef = useRef(null)
+  const pollIntervalRef = useRef(null)
+  const unreadPollRef = useRef(null)
 
   const shouldShow = isAuthenticated && !isAdmin
 
-  // Keep ref in sync with isOpen so socket handlers have current value
-  useEffect(() => {
-    isOpenRef.current = isOpen
-  }, [isOpen])
+  useEffect(() => { isOpenRef.current = isOpen }, [isOpen])
+  useEffect(() => { conversationRef.current = conversation }, [conversation])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
+
+  const pollMessages = async () => {
+    const conv = conversationRef.current
+    if (!conv) return
+    try {
+      const res = await liveChatAPI.getMessages(conv._id, lastTimestampRef.current)
+      const newMsgs = res.data.messages
+      if (newMsgs.length > 0) {
+        lastTimestampRef.current = newMsgs[newMsgs.length - 1].createdAt
+        if (isOpenRef.current) {
+          setMessages(prev => [...prev, ...newMsgs])
+          liveChatAPI.markRead(conv._id).catch(() => {})
+        } else {
+          const adminMsgs = newMsgs.filter(m => m.senderRole === 'admin')
+          if (adminMsgs.length > 0) setUnreadCount(prev => prev + adminMsgs.length)
+        }
+      }
+    } catch {
+      // silently ignore poll errors
+    }
+  }
+
+  const pollUnread = async () => {
+    if (isOpenRef.current || conversationRef.current) return
+    try {
+      const res = await liveChatAPI.getUnread()
+      setUnreadCount(res.data.total || 0)
+    } catch {
+      // silently ignore
+    }
+  }
+
+  // Start message polling once conversation is set
+  useEffect(() => {
+    if (!conversation) return
+    pollIntervalRef.current = setInterval(pollMessages, POLL_INTERVAL)
+    return () => clearInterval(pollIntervalRef.current)
+  }, [conversation])
+
+  // Poll unread count when no conversation yet
+  useEffect(() => {
+    if (!shouldShow) return
+    unreadPollRef.current = setInterval(pollUnread, UNREAD_POLL_INTERVAL)
+    return () => clearInterval(unreadPollRef.current)
+  }, [shouldShow])
+
+  useEffect(() => { scrollToBottom() }, [messages])
 
   const openChat = async () => {
     setIsOpen(true)
@@ -45,15 +92,16 @@ export default function LiveChatWidget() {
     try {
       const res = await liveChatAPI.createConversation()
       const conv = res.data.conversation
+      setClosed(conv.status === 'closed')
       setConversation(conv)
 
       const msgRes = await liveChatAPI.getConversation(conv._id)
-      setMessages(msgRes.data.messages)
-
-      if (socket) {
-        socket.emit('join_conversation', conv._id)
-        socket.emit('mark_read', { conversationId: conv._id })
+      const msgs = msgRes.data.messages
+      setMessages(msgs)
+      if (msgs.length > 0) {
+        lastTimestampRef.current = msgs[msgs.length - 1].createdAt
       }
+      liveChatAPI.markRead(conv._id).catch(() => {})
     } catch (err) {
       console.error('Error opening chat:', err)
     } finally {
@@ -61,88 +109,29 @@ export default function LiveChatWidget() {
     }
   }
 
-  const closeChat = () => {
-    if (conversation && socket) {
-      socket.emit('leave_conversation', conversation._id)
-    }
-    setIsOpen(false)
-  }
+  const closeChat = () => setIsOpen(false)
 
-  // Listen for socket events
-  useEffect(() => {
-    if (!socket || !shouldShow) return
-
-    const handleNewMessage = ({ conversationId, message }) => {
-      if (conversation && conversationId === conversation._id) {
-        if (isOpenRef.current) {
-          // Chat is open — append and mark as read
-          setMessages(prev => [...prev, message])
-          socket.emit('mark_read', { conversationId })
-        } else {
-          // Chat is closed — increment badge
-          if (message.senderRole === 'admin') {
-            setUnreadCount(prev => prev + 1)
-          }
-        }
-      }
-    }
-
-    const handleTyping = ({ conversationId, name, isTyping }) => {
-      if (conversation && conversationId === conversation._id) {
-        setTyping(isTyping ? name : null)
-      }
-    }
-
-    // Fired on patient's personal room when admin sends — used when chat window is closed
-    // and patient hasn't joined the conversation socket room yet
-    const handleConversationUpdated = () => {
-      if (!isOpenRef.current) {
-        setUnreadCount(prev => prev + 1)
-      }
-    }
-
-    socket.on('new_message', handleNewMessage)
-    socket.on('user_typing', handleTyping)
-    socket.on('conversation_updated', handleConversationUpdated)
-
-    return () => {
-      socket.off('new_message', handleNewMessage)
-      socket.off('user_typing', handleTyping)
-      socket.off('conversation_updated', handleConversationUpdated)
-    }
-  }, [socket, conversation, shouldShow])
-
-  useEffect(() => {
-    scrollToBottom()
-  }, [messages])
-
-  const handleSend = (e) => {
+  const handleSend = async (e) => {
     e.preventDefault()
     if (!newMessage.trim() || sending || !conversation || closed) return
 
     const content = newMessage.trim()
     setNewMessage('')
-
-    if (socket && isConnected) {
-      socket.emit('send_message', { conversationId: conversation._id, content })
-      socket.emit('typing', { conversationId: conversation._id, isTyping: false })
+    setSending(true)
+    try {
+      const res = await liveChatAPI.sendMessage(conversation._id, content)
+      const msg = res.data.message
+      setMessages(prev => [...prev, msg])
+      lastTimestampRef.current = msg.createdAt
+    } catch (err) {
+      console.error('Error sending message:', err)
+    } finally {
+      setSending(false)
     }
   }
 
-  const handleTypingInput = (e) => {
-    setNewMessage(e.target.value)
-    if (socket && conversation) {
-      socket.emit('typing', { conversationId: conversation._id, isTyping: true })
-      clearTimeout(typingTimeoutRef.current)
-      typingTimeoutRef.current = setTimeout(() => {
-        socket.emit('typing', { conversationId: conversation._id, isTyping: false })
-      }, 2000)
-    }
-  }
-
-  const formatTime = (dateStr) => {
-    return new Date(dateStr).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
-  }
+  const formatTime = (dateStr) =>
+    new Date(dateStr).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
 
   if (!shouldShow) return null
 
@@ -157,13 +146,9 @@ export default function LiveChatWidget() {
             title="Live Chat"
           >
             <ChatBubbleLeftRightIcon className="w-7 h-7 group-hover:scale-110 transition-transform" />
-
-            {/* Unread badge */}
             {unreadCount > 0 && (
               <>
-                {/* Pulse ring */}
                 <span className="absolute inset-0 rounded-full bg-red-500 opacity-30 animate-ping" />
-                {/* Count badge */}
                 <span className="absolute -top-1.5 -right-1.5 min-w-[22px] h-[22px] bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1 shadow-lg border-2 border-white">
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
@@ -184,9 +169,7 @@ export default function LiveChatWidget() {
               </div>
               <div>
                 <h3 className="text-white font-semibold text-sm">Live Chat</h3>
-                <p className="text-white/70 text-xs">
-                  {isConnected ? 'Connected' : 'Connecting...'}
-                </p>
+                <p className="text-white/70 text-xs">Online</p>
               </div>
             </div>
             <div className="flex items-center gap-1">
@@ -236,13 +219,6 @@ export default function LiveChatWidget() {
                 )
               })
             )}
-            {typing && (
-              <div className="flex justify-start">
-                <div className="bg-white dark:bg-slate-700 rounded-2xl px-4 py-2 border border-gray-200 dark:border-transparent rounded-bl-md">
-                  <p className="text-xs text-gray-500 dark:text-slate-400 italic">{typing} is typing...</p>
-                </div>
-              </div>
-            )}
             <div ref={messagesEndRef} />
           </div>
 
@@ -263,10 +239,9 @@ export default function LiveChatWidget() {
           {!closed && (
             <form onSubmit={handleSend} className="flex items-center gap-2 p-3 border-t border-gray-200 dark:border-white/10 bg-white dark:bg-luxury-charcoal flex-shrink-0">
               <input
-                ref={inputRef}
                 type="text"
                 value={newMessage}
-                onChange={handleTypingInput}
+                onChange={(e) => setNewMessage(e.target.value)}
                 placeholder="Type a message..."
                 maxLength={2000}
                 className="flex-1 px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-luxury-black/50 text-gray-800 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50 placeholder-gray-400"
