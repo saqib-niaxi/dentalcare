@@ -4,11 +4,10 @@ import { liveChatAPI } from '../../api/liveChat'
 import {
   ChatBubbleLeftRightIcon,
   PaperAirplaneIcon,
-  XMarkIcon,
-  TrashIcon
+  XMarkIcon
 } from '@heroicons/react/24/solid'
 
-export default function MessagesTab({ initialConvId = null, onConvOpened }) {
+export default function MessagesTab({ initialConvId = null, onConvOpened, onConvRead }) {
   const { socket } = useSocket()
   const [conversations, setConversations] = useState([])
   const [activeConv, setActiveConv] = useState(null)
@@ -17,7 +16,6 @@ export default function MessagesTab({ initialConvId = null, onConvOpened }) {
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
   const [typing, setTyping] = useState(null)
-  const [deleteConfirm, setDeleteConfirm] = useState(null) // conv id pending deletion
   const messagesEndRef = useRef(null)
   const typingTimeoutRef = useRef(null)
   const initialConvHandled = useRef(false)
@@ -68,10 +66,11 @@ export default function MessagesTab({ initialConvId = null, onConvOpened }) {
         socket.emit('mark_read', { conversationId: conv._id })
       }
 
-      // Update local unread
+      // Clear unread locally + notify AdminPanel to clear bell notification
       setConversations(prev => prev.map(c =>
         c._id === conv._id ? { ...c, unreadCountAdmin: 0 } : c
       ))
+      onConvRead?.(conv._id)
     } catch (err) {
       console.error('Error loading conversation:', err)
     }
@@ -86,20 +85,6 @@ export default function MessagesTab({ initialConvId = null, onConvOpened }) {
     setTyping(null)
   }
 
-  const handleDelete = async (convId) => {
-    try {
-      await liveChatAPI.deleteConversation(convId)
-      setConversations(prev => prev.filter(c => c._id !== convId))
-      if (activeConv?._id === convId) {
-        closePanel()
-      }
-    } catch (err) {
-      console.error('Error deleting conversation:', err)
-    } finally {
-      setDeleteConfirm(null)
-    }
-  }
-
   // Socket events
   useEffect(() => {
     if (!socket) return
@@ -108,8 +93,14 @@ export default function MessagesTab({ initialConvId = null, onConvOpened }) {
       if (activeConv && conversationId === activeConv._id) {
         setMessages(prev => [...prev, message])
         socket.emit('mark_read', { conversationId })
+      } else if (message.senderRole === 'patient') {
+        // Increment unread badge on the conversation row
+        setConversations(prev => prev.map(c =>
+          c._id === conversationId
+            ? { ...c, unreadCountAdmin: (c.unreadCountAdmin || 0) + 1, lastMessage: { content: message.content, timestamp: message.createdAt } }
+            : c
+        ))
       }
-      // Update conversation list
       fetchConversations()
     }
 
@@ -200,7 +191,7 @@ export default function MessagesTab({ initialConvId = null, onConvOpened }) {
               conversations.map(conv => (
                 <div
                   key={conv._id}
-                  className={`group relative border-b border-white/5 transition-all hover:bg-white/5 ${
+                  className={`border-b border-white/5 transition-all hover:bg-white/5 ${
                     activeConv?._id === conv._id ? 'bg-amber-500/10 border-l-2 border-l-amber-500' : ''
                   }`}
                 >
@@ -212,12 +203,17 @@ export default function MessagesTab({ initialConvId = null, onConvOpened }) {
                       <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center text-slate-900 font-bold text-sm flex-shrink-0">
                         {conv.patient?.name?.charAt(0)?.toUpperCase() || '?'}
                       </div>
-                      <div className="flex-1 min-w-0 pr-6">
-                        <div className="flex items-center justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
                           <p className="text-white font-medium text-sm truncate">{conv.patient?.name || 'Unknown'}</p>
+                          {conv.unreadCountAdmin > 0 && (
+                            <span className="flex-shrink-0 min-w-[20px] h-5 bg-red-500 text-white text-[11px] font-bold rounded-full flex items-center justify-center px-1">
+                              {conv.unreadCountAdmin > 9 ? '9+' : conv.unreadCountAdmin}
+                            </span>
+                          )}
                         </div>
                         <div className="flex items-center justify-between mt-1">
-                          <p className="text-slate-400 text-xs truncate flex-1">
+                          <p className={`text-xs truncate flex-1 ${conv.unreadCountAdmin > 0 ? 'text-white font-medium' : 'text-slate-400'}`}>
                             {conv.lastMessage?.content || 'No messages'}
                           </p>
                           <span className="text-slate-500 text-xs ml-2 flex-shrink-0">
@@ -229,14 +225,6 @@ export default function MessagesTab({ initialConvId = null, onConvOpened }) {
                         )}
                       </div>
                     </div>
-                  </button>
-                  {/* Delete icon — appears on hover */}
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setDeleteConfirm(conv._id) }}
-                    className="absolute top-3 right-3 p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
-                    title="Delete conversation"
-                  >
-                    <TrashIcon className="w-4 h-4" />
                   </button>
                 </div>
               ))
@@ -268,13 +256,6 @@ export default function MessagesTab({ initialConvId = null, onConvOpened }) {
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => setDeleteConfirm(activeConv._id)}
-                    className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
-                    title="Delete conversation"
-                  >
-                    <TrashIcon className="w-5 h-5" />
-                  </button>
                   <button
                     onClick={closePanel}
                     className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-all"
@@ -343,36 +324,6 @@ export default function MessagesTab({ initialConvId = null, onConvOpened }) {
         </div>
       </div>
 
-      {/* Delete confirmation modal */}
-      {deleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-slate-800 border border-white/10 rounded-2xl p-6 w-80 shadow-2xl">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-red-500/20 rounded-full flex items-center justify-center flex-shrink-0">
-                <TrashIcon className="w-5 h-5 text-red-400" />
-              </div>
-              <div>
-                <p className="text-white font-semibold text-sm">Delete conversation?</p>
-                <p className="text-slate-400 text-xs mt-0.5">All messages will be permanently removed.</p>
-              </div>
-            </div>
-            <div className="flex gap-2 justify-end">
-              <button
-                onClick={() => setDeleteConfirm(null)}
-                className="px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition-all"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleDelete(deleteConfirm)}
-                className="px-4 py-2 text-sm bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all font-medium"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

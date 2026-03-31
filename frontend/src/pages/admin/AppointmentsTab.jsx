@@ -14,16 +14,16 @@ import {
   UserIcon,
   EnvelopeIcon,
   PhoneIcon,
-  DocumentTextIcon,
-  ChatBubbleLeftRightIcon
+  DocumentTextIcon
 } from '@heroicons/react/24/outline'
 
 const StatusBadge = ({ status }) => {
   const styles = {
-    pending: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-    approved: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+    pending:   'bg-amber-500/20 text-amber-400 border-amber-500/30',
+    approved:  'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
     completed: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-    cancelled: 'bg-red-500/20 text-red-400 border-red-500/30'
+    cancelled: 'bg-red-500/20 text-red-400 border-red-500/30',
+    missed:    'bg-orange-500/20 text-orange-400 border-orange-500/30'
   }
 
   return (
@@ -31,6 +31,13 @@ const StatusBadge = ({ status }) => {
       {status.charAt(0).toUpperCase() + status.slice(1)}
     </span>
   )
+}
+
+const isOverdue = (appointment) => {
+  if (appointment.status !== 'approved') return false
+  const dateStr = new Date(appointment.date).toISOString().split('T')[0]
+  const aptTime = new Date(`${dateStr}T${appointment.time}:00`)
+  return aptTime < new Date()
 }
 
 export default function AppointmentsTab({ appointments, onRefresh }) {
@@ -79,10 +86,11 @@ export default function AppointmentsTab({ appointments, onRefresh }) {
   )
 
   const filters = [
-    { id: 'all', label: 'All', count: appointments.length },
-    { id: 'pending', label: 'Pending', count: appointments.filter(a => a.status === 'pending').length },
-    { id: 'approved', label: 'Approved', count: appointments.filter(a => a.status === 'approved').length },
-    { id: 'completed', label: 'Completed', count: appointments.filter(a => a.status === 'completed').length }
+    { id: 'all',       label: 'All',       count: appointments.length },
+    { id: 'pending',   label: 'Pending',   count: appointments.filter(a => a.status === 'pending').length },
+    { id: 'approved',  label: 'Approved',  count: appointments.filter(a => a.status === 'approved').length },
+    { id: 'completed', label: 'Completed', count: appointments.filter(a => a.status === 'completed').length },
+    { id: 'missed',    label: 'Missed',    count: appointments.filter(a => a.status === 'missed').length }
   ]
 
   return (
@@ -135,7 +143,11 @@ export default function AppointmentsTab({ appointments, onRefresh }) {
           {sortedAppointments.map(appointment => (
             <div
               key={appointment._id}
-              className="bg-slate-700/30 hover:bg-slate-700/50 rounded-xl p-4 border border-white/5 hover:border-white/10 transition-all duration-200 group"
+              className={`hover:bg-slate-700/50 rounded-xl p-4 border transition-all duration-200 group ${
+                isOverdue(appointment)
+                  ? 'bg-orange-500/5 border-orange-500/20 hover:border-orange-500/40'
+                  : 'bg-slate-700/30 border-white/5 hover:border-white/10'
+              }`}
             >
               <div className="flex flex-col lg:flex-row lg:items-center gap-4">
                 {/* Patient Info */}
@@ -193,19 +205,17 @@ export default function AppointmentsTab({ appointments, onRefresh }) {
                 </div>
 
                 {/* Status */}
-                <div className="lg:w-32">
+                <div className="lg:w-36 flex flex-col gap-1">
                   <StatusBadge status={appointment.status} />
+                  {isOverdue(appointment) && (
+                    <span className="px-2 py-0.5 bg-orange-500/20 text-orange-400 text-xs rounded-full border border-orange-500/30 w-fit">
+                      Overdue
+                    </span>
+                  )}
                 </div>
 
                 {/* Actions */}
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setSelectedAppointment(appointment)}
-                    className="p-2 text-amber-400 hover:text-amber-300 hover:bg-amber-500/20 rounded-lg transition-all"
-                    title="View Details & Messages"
-                  >
-                    <ChatBubbleLeftRightIcon className="w-5 h-5" />
-                  </button>
                   {appointment.status === 'pending' && (
                     <button
                       onClick={() => handleStatusUpdate(appointment._id, 'approved')}
@@ -215,7 +225,16 @@ export default function AppointmentsTab({ appointments, onRefresh }) {
                       <CheckIcon className="w-5 h-5" />
                     </button>
                   )}
-                  {appointment.status !== 'completed' && appointment.status !== 'cancelled' && (
+                  {appointment.status === 'approved' && isOverdue(appointment) && (
+                    <button
+                      onClick={() => handleStatusUpdate(appointment._id, 'missed')}
+                      className="p-2 text-orange-400 hover:text-orange-300 hover:bg-orange-500/20 rounded-lg transition-all"
+                      title="Mark as Missed (No-show)"
+                    >
+                      <XMarkIcon className="w-5 h-5" />
+                    </button>
+                  )}
+                  {appointment.status !== 'completed' && appointment.status !== 'cancelled' && appointment.status !== 'missed' && (
                     <button
                       onClick={() => handleStatusUpdate(appointment._id, 'completed')}
                       className="p-2 text-blue-400 hover:text-blue-300 hover:bg-blue-500/20 rounded-lg transition-all"

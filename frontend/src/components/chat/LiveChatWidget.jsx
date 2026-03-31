@@ -1,5 +1,7 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useAuth } from '../../context/AuthContext'
+import { useSocket } from '../../context/SocketContext'
+import { useNotification } from '../../context/NotificationContext'
 import { liveChatAPI } from '../../api/liveChat'
 import {
   ChatBubbleLeftRightIcon,
@@ -8,11 +10,13 @@ import {
   MinusIcon
 } from '@heroicons/react/24/solid'
 
-const POLL_INTERVAL = 3000      // 3s when chat is open
-const UNREAD_POLL_INTERVAL = 10000 // 10s for unread badge
+// Fallback polling only used when socket is disconnected
+const POLL_INTERVAL = 3000
 
 export default function LiveChatWidget() {
   const { isAuthenticated, isAdmin } = useAuth()
+  const { socket, isConnected } = useSocket()
+  const { info } = useNotification()
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState([])
   const [newMessage, setNewMessage] = useState('')
@@ -26,7 +30,6 @@ export default function LiveChatWidget() {
   const conversationRef = useRef(null)
   const lastTimestampRef = useRef(null)
   const pollIntervalRef = useRef(null)
-  const unreadPollRef = useRef(null)
 
   const shouldShow = isAuthenticated && !isAdmin
 
@@ -37,7 +40,62 @@ export default function LiveChatWidget() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  const pollMessages = async () => {
+  // ── Socket event listeners ──────────────────────────────────────────────────
+  useEffect(() => {
+    if (!socket) return
+
+    const handleNewMessage = ({ conversationId, message }) => {
+      if (!conversationRef.current || conversationId !== conversationRef.current._id) return
+
+      if (isOpenRef.current) {
+        setMessages(prev => {
+          // Deduplicate in case HTTP fallback also added it
+          if (prev.some(m => m._id === message._id)) return prev
+          return [...prev, message]
+        })
+        lastTimestampRef.current = message.createdAt
+        liveChatAPI.markRead(conversationId).catch(() => {})
+      } else {
+        // Chat minimized — show unread badge + clickable notification
+        if (message.senderRole === 'admin') {
+          setUnreadCount(prev => prev + 1)
+          const senderName = message.sender?.name || 'Support'
+          info(`💬 New message from ${senderName}: "${message.content.slice(0, 50)}${message.content.length > 50 ? '…' : ''}"`, () => {
+            setIsOpen(true)
+            setUnreadCount(0)
+          })
+        }
+      }
+    }
+
+    const handleConversationUpdated = ({ conversationId }) => {
+      // Fired when someone sends a message while we are not in the room
+      if (!conversationRef.current && !isOpenRef.current) {
+        liveChatAPI.getUnread().then(res => setUnreadCount(res.data.total || 0)).catch(() => {})
+      }
+    }
+
+    socket.on('new_message', handleNewMessage)
+    socket.on('conversation_updated', handleConversationUpdated)
+
+    return () => {
+      socket.off('new_message', handleNewMessage)
+      socket.off('conversation_updated', handleConversationUpdated)
+    }
+  }, [socket])
+
+  // ── Join / leave socket room when conversation changes ──────────────────────
+  useEffect(() => {
+    if (!socket || !conversation) return
+    socket.emit('join_conversation', conversation._id)
+    return () => {
+      socket.emit('leave_conversation', conversation._id)
+    }
+  }, [socket, conversation])
+
+  // ── Fallback HTTP polling — only when socket is disconnected ────────────────
+  const pollMessages = useCallback(async () => {
+    if (isConnected) return // socket handles it
     const conv = conversationRef.current
     if (!conv) return
     try {
@@ -56,34 +114,27 @@ export default function LiveChatWidget() {
     } catch {
       // silently ignore poll errors
     }
-  }
+  }, [isConnected])
 
-  const pollUnread = async () => {
-    if (isOpenRef.current || conversationRef.current) return
-    try {
-      const res = await liveChatAPI.getUnread()
-      setUnreadCount(res.data.total || 0)
-    } catch {
-      // silently ignore
-    }
-  }
-
-  // Start message polling once conversation is set
   useEffect(() => {
-    if (!conversation) return
+    if (!conversation || isConnected) {
+      clearInterval(pollIntervalRef.current)
+      return
+    }
+    // Socket offline — start polling as fallback
     pollIntervalRef.current = setInterval(pollMessages, POLL_INTERVAL)
     return () => clearInterval(pollIntervalRef.current)
-  }, [conversation])
+  }, [conversation, isConnected, pollMessages])
 
-  // Poll unread count when no conversation yet
+  // ── Unread count — initial load ─────────────────────────────────────────────
   useEffect(() => {
     if (!shouldShow) return
-    unreadPollRef.current = setInterval(pollUnread, UNREAD_POLL_INTERVAL)
-    return () => clearInterval(unreadPollRef.current)
+    liveChatAPI.getUnread().then(res => setUnreadCount(res.data.total || 0)).catch(() => {})
   }, [shouldShow])
 
   useEffect(() => { scrollToBottom() }, [messages])
 
+  // ── Open / close chat ───────────────────────────────────────────────────────
   const openChat = async () => {
     setIsOpen(true)
     setUnreadCount(0)
@@ -111,22 +162,30 @@ export default function LiveChatWidget() {
 
   const closeChat = () => setIsOpen(false)
 
+  // ── Send message — socket first, HTTP fallback ──────────────────────────────
   const handleSend = async (e) => {
     e.preventDefault()
     if (!newMessage.trim() || sending || !conversation || closed) return
 
     const content = newMessage.trim()
     setNewMessage('')
-    setSending(true)
-    try {
-      const res = await liveChatAPI.sendMessage(conversation._id, content)
-      const msg = res.data.message
-      setMessages(prev => [...prev, msg])
-      lastTimestampRef.current = msg.createdAt
-    } catch (err) {
-      console.error('Error sending message:', err)
-    } finally {
-      setSending(false)
+
+    if (socket?.connected) {
+      // Real-time: server will broadcast new_message back to this socket too
+      socket.emit('send_message', { conversationId: conversation._id, content })
+    } else {
+      // Fallback: HTTP send, add message manually
+      setSending(true)
+      try {
+        const res = await liveChatAPI.sendMessage(conversation._id, content)
+        const msg = res.data.message
+        setMessages(prev => [...prev, msg])
+        lastTimestampRef.current = msg.createdAt
+      } catch (err) {
+        console.error('Error sending message:', err)
+      } finally {
+        setSending(false)
+      }
     }
   }
 
@@ -169,7 +228,7 @@ export default function LiveChatWidget() {
               </div>
               <div>
                 <h3 className="text-white font-semibold text-sm">Live Chat</h3>
-                <p className="text-white/70 text-xs">Online</p>
+                <p className="text-white/70 text-xs">{isConnected ? 'Online' : 'Connecting...'}</p>
               </div>
             </div>
             <div className="flex items-center gap-1">

@@ -13,7 +13,33 @@ const getConversations = async (req, res) => {
       .populate('patient', 'name email')
       .sort({ updatedAt: -1 });
 
-    res.json({ success: true, conversations });
+    const convIds = conversations.map(c => c._id);
+
+    // Attach last message preview + unread count to each conversation
+    const [lastMessages, unreadCounts] = await Promise.all([
+      Message.aggregate([
+        { $match: { conversation: { $in: convIds }, type: 'live' } },
+        { $sort: { createdAt: -1 } },
+        { $group: { _id: '$conversation', content: { $first: '$content' }, timestamp: { $first: '$createdAt' } } }
+      ]),
+      Message.aggregate([
+        { $match: { conversation: { $in: convIds }, type: 'live', senderRole: 'patient', isRead: false } },
+        { $group: { _id: '$conversation', count: { $sum: 1 } } }
+      ])
+    ]);
+
+    const lastMsgMap = {};
+    lastMessages.forEach(m => { lastMsgMap[m._id.toString()] = { content: m.content, timestamp: m.timestamp }; });
+    const unreadMap = {};
+    unreadCounts.forEach(u => { unreadMap[u._id.toString()] = u.count; });
+
+    const enriched = conversations.map(c => ({
+      ...c.toObject(),
+      lastMessage: lastMsgMap[c._id.toString()] || null,
+      unreadCountAdmin: unreadMap[c._id.toString()] || 0
+    }));
+
+    res.json({ success: true, conversations: enriched });
   } catch (error) {
     console.error('Error fetching conversations:', error);
     res.status(500).json({ message: 'Server error' });

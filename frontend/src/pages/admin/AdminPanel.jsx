@@ -631,6 +631,7 @@ export default function AdminPanel() {
                     <MessagesTab
                       initialConvId={selectedConvId}
                       onConvOpened={() => setSelectedConvId(null)}
+                      onConvRead={(convId) => setChatNotifications(prev => prev.filter(n => n.convId !== convId))}
                     />
                   )}
                   {activeTab === 'services' && (

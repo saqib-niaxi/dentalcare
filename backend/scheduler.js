@@ -1,8 +1,8 @@
 const cron = require('node-cron');
 const Appointment = require('./models/Appointment');
-const { sendPendingAppointmentReminder, sendAppointmentCancellationEmail, sendAppointmentReminderEmail } = require('./utils/email');
+const { sendPendingAppointmentReminder, sendAppointmentReminderEmail } = require('./utils/email');
 
-// Store sent reminders to avoid duplicates
+// Store sent reminders/actions to avoid duplicates within the same server session
 const sentReminders = new Set();
 
 // Check appointments every minute
@@ -11,99 +11,96 @@ const startScheduler = () => {
     try {
       const now = new Date();
 
-      // Find all pending appointments
+      // ── Pending appointments ──────────────────────────────────────────────
       const pendingAppointments = await Appointment.find({ status: 'pending' })
         .populate('patient', 'name email')
         .populate('service', 'name');
 
       for (const appointment of pendingAppointments) {
-        if (!appointment.patient || !appointment.service) continue;
+        // Support both registered patients and chatbot/guest bookings
+        const patientEmail = appointment.patient?.email || appointment.guestInfo?.email;
+        const patientName = appointment.patient?.name || appointment.guestInfo?.name || 'Patient';
+        const serviceName = appointment.service?.name || appointment.serviceType || 'General Consultation';
 
-        // Parse date and time properly
+        if (!patientEmail) continue;
+
         const dateStr = new Date(appointment.date).toISOString().split('T')[0];
         const appointmentTime = new Date(`${dateStr}T${appointment.time}:00`);
-        const timeUntilAppointment = appointmentTime - now;
-        const minutesUntil = Math.floor(timeUntilAppointment / (1000 * 60));
+        const timeUntilMs = appointmentTime - now;
+        const minutesUntil = Math.floor(timeUntilMs / (1000 * 60));
 
-        // Issue 2: Send reminder 1 hour (60 minutes) before appointment
+        // Send "still pending" warning email 1 hour before
         if (minutesUntil >= 59 && minutesUntil <= 61) {
           const reminderId = `${appointment._id}-1hour`;
           if (!sentReminders.has(reminderId)) {
             try {
               await sendPendingAppointmentReminder(
-                appointment.patient.email,
-                appointment.patient.name,
-                appointment.service.name,
+                patientEmail,
+                patientName,
+                serviceName,
                 appointment.date,
                 appointment.time
               );
               sentReminders.add(reminderId);
-              console.log(`Sent 1-hour reminder for appointment ${appointment._id}`);
+              console.log(`Sent 1-hour pending reminder for appointment ${appointment._id}`);
             } catch (emailError) {
-              console.error(`Failed to send reminder for appointment ${appointment._id}:`, emailError);
+              console.error(`Failed to send 1-hour reminder for ${appointment._id}:`, emailError);
             }
           }
         }
 
-        // Issue 3: Auto-cancel 15 minutes before appointment if still pending
-        if (minutesUntil >= 14 && minutesUntil <= 16) {
-          const cancelId = `${appointment._id}-autocancelled`;
-          if (!sentReminders.has(cancelId)) {
+        // Mark as missed once appointment time has passed (pending = never approved)
+        if (minutesUntil <= 0) {
+          const missedId = `${appointment._id}-missed`;
+          if (!sentReminders.has(missedId)) {
             try {
-              await Appointment.findByIdAndUpdate(
-                appointment._id,
-                { status: 'cancelled' }
-              );
-
-              await sendAppointmentCancellationEmail(
-                appointment.patient.email,
-                appointment.patient.name,
-                appointment.service.name,
-                appointment.date,
-                appointment.time
-              );
-
-              sentReminders.add(cancelId);
-              console.log(`Auto-cancelled appointment ${appointment._id} - doctor did not approve`);
-            } catch (error) {
-              console.error(`Error auto-cancelling appointment ${appointment._id}:`, error);
+              await Appointment.findByIdAndUpdate(appointment._id, { status: 'missed' });
+              sentReminders.add(missedId);
+              console.log(`Marked appointment ${appointment._id} as missed (was never approved)`);
+            } catch (err) {
+              console.error(`Error marking appointment ${appointment._id} as missed:`, err);
             }
           }
         }
       }
-      // 24-hour reminder for approved appointments
+
+      // ── Approved appointments — 24-hour reminder ──────────────────────────
       const approvedAppointments = await Appointment.find({ status: 'approved' })
         .populate('patient', 'name email')
         .populate('service', 'name');
 
       for (const appointment of approvedAppointments) {
-        if (!appointment.patient?.email || !appointment.service) continue;
+        const patientEmail = appointment.patient?.email || appointment.guestInfo?.email;
+        const patientName = appointment.patient?.name || appointment.guestInfo?.name || 'Patient';
+        const serviceName = appointment.service?.name || appointment.serviceType || 'General Consultation';
+
+        if (!patientEmail) continue;
 
         const dateStr2 = new Date(appointment.date).toISOString().split('T')[0];
         const appointmentTime2 = new Date(`${dateStr2}T${appointment.time}:00`);
-        const timeUntil2 = appointmentTime2 - now;
-        const minutesUntil2 = Math.floor(timeUntil2 / (1000 * 60));
+        const minutesUntil2 = Math.floor((appointmentTime2 - now) / (1000 * 60));
 
-        // Send reminder in 23-25 hour window before appointment
+        // Send 24-hour reminder (23–25 hour window to avoid missing it)
         if (minutesUntil2 >= 1380 && minutesUntil2 <= 1500) {
           const reminderId = `${appointment._id}-24hour`;
           if (!sentReminders.has(reminderId)) {
             try {
               await sendAppointmentReminderEmail(
-                appointment.patient.email,
-                appointment.patient.name,
-                appointment.service.name,
+                patientEmail,
+                patientName,
+                serviceName,
                 appointment.date,
                 appointment.time
               );
               sentReminders.add(reminderId);
               console.log(`Sent 24-hour reminder for appointment ${appointment._id}`);
             } catch (emailError) {
-              console.error(`Failed to send 24-hour reminder for appointment ${appointment._id}:`, emailError);
+              console.error(`Failed to send 24-hour reminder for ${appointment._id}:`, emailError);
             }
           }
         }
       }
+
     } catch (error) {
       console.error('Scheduler error:', error);
     }
